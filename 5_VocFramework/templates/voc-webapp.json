@@ -1,0 +1,722 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters" : {
+        "DynamoDBTableName" :{
+            "Type": "String",
+            "Description": "DynamoDB Table name where customer feedbacks would be stored.",                        
+            "AllowedPattern": "^[a-zA-Z0-9._-]{3,255}$",
+            "Default": "UnicornCustomerFeedback",
+            "ConstraintDescription" : "Should be a Valid DynamoDB Table Name"
+        },        
+        "HostingBucket" :{
+            "Type": "String",
+            "Description": " The name for the bucket hosting your website, e.g. 'nlp-yourname'.",                        
+            "AllowedPattern": "^([a-z]|(\\d(?!\\d{0,2}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})))([a-z\\d]|(\\.(?!(\\.|-)))|(-(?!\\.))){1,61}[a-z\\d\\.]$",
+            "Default": "nlp-yourname",
+            "ConstraintDescription" : "Should be a Valid S3 Bucket Name"
+        },          
+        "SourceBucket" :{
+            "Type": "String",
+            "Description": "Source bucket containing the code deployed by this template.",                        
+            "AllowedPattern": "^([a-z]|(\\d(?!\\d{0,2}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})))([a-z\\d]|(\\.(?!(\\.|-)))|(-(?!\\.))){1,61}[a-z\\d\\.]$",
+            "Default": "nlp-workshop",
+            "ConstraintDescription" : "Should be a Valid S3 Bucket Name"
+        },
+        "SourceKeyPrefix" :{
+            "Type": "String",
+            "Description": "Key prefix for website resources in the source bucket.",                        
+            "Default": "website-source",
+            "ConstraintDescription" : "Should be a Valid S3 Bucket Name"
+        }         
+    }, 
+    "Resources": {
+        "UnicornFeedbackTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+                "TableName": {"Ref" : "DynamoDBTableName"},
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "ID",
+                        "AttributeType": "S"
+                    },
+                    {
+                        "AttributeName": "PostedTime",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "AttributeName": "ID",
+                        "KeyType": "HASH"
+                    },
+                    {
+                        "AttributeName": "PostedTime",
+                        "KeyType": "RANGE"
+                    }
+                ],               
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": 5,
+                    "WriteCapacityUnits": 5
+                }
+            }
+        },         
+        "LambdaExecutionRole": {
+            "Type": "AWS::IAM::Role",
+            "DependsOn": "UnicornFeedbackTable",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "root",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:CreateLogGroup",
+                                        "logs:CreateLogStream",
+                                        "logs:PutLogEvents",
+                                        "dynamodb:BatchGetItem",
+                                        "dynamodb:DescribeTable",
+                                        "dynamodb:GetItem",
+                                        "dynamodb:PutItem",
+                                        "dynamodb:UpdateItem",
+                                        "dynamodb:DeleteItem",
+                                        "dynamodb:ListTables",
+                                        "dynamodb:Query",
+                                        "dynamodb:Scan",
+                                        "dynamodb:DescribeStream",
+                                        "dynamodb:GetRecords",
+                                        "dynamodb:GetShardIterator",
+                                        "dynamodb:ListStreams", 
+                                        "comprehend:DetectSentiment",   
+                                        "sagemaker:InvokeEndpoint",                                       
+                                        "s3:ListBucket",
+                                        "s3:GetObject",
+                                        "s3:PutObject",
+                                        "s3:PutObjectAcl",
+                                        "s3:PutObjectVersionAcl",
+                                        "s3:DeleteObject",
+                                        "s3:DeleteObjectVersion",
+                                        "s3:CopyObject",                                        
+                                        "xray:PutTraceSegments"                                        
+                                    ],
+                                    "Resource": "*"
+                                }                                
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "EnterCustomerFeedback": {
+            "Type": "AWS::Lambda::Function",
+            "DependsOn": "LambdaExecutionRole",
+            "Properties": {
+                "Description" : "Create a new event entry into Unicorn Feedback table",
+                "FunctionName" : "EnterCustomerFeedback",
+                "Handler": "index.handler",
+                "Role": { "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"] },
+                "Environment": {
+                    "Variables" : 
+                        { 
+                            "table_name": {
+                                "Ref" : "UnicornFeedbackTable" 
+                            }
+                        }
+                },
+                "Code": {
+                    "ZipFile" : { "Fn::Join" : ["\n", [
+                        "import os",
+                        "import json",
+                        "import uuid",                        
+                        "import boto3",
+                        "from datetime import datetime",
+                        "dynamodb = boto3.client('dynamodb')",                        
+                        "def handler(event, context):",
+                        "    print('Received event: ' + json.dumps(event, indent=2))",
+                        "    table_name=os.environ['table_name']",
+                        "    firstname = event['FirstName']",
+                        "    lastname = event['LastName']",
+                        "    feedback = ''",
+                        "    if 'Feedback' in event:",
+                        "        feedback = event['Feedback']",                        
+                        "    data_event_isactive = 'no'",
+                        "    try:",
+                        "        if feedback == '':",
+                        "            response = dynamodb.update_item(",
+                        "                TableName=table_name,",
+                        "                Key={",
+                        "                    'ID':{'S':str(uuid.uuid4())},",
+                        "                    'PostedTime':{'S':datetime.now().isoformat()}",                        
+                        "                },",
+                        "                AttributeUpdates={",
+                        "                    'FirstName':{'Value': {'S':firstname}},",
+                        "                    'LastName':{'Value': {'S':lastname}}",
+                        "                }",
+                        "            )",
+                        "        else:",
+                        "            response = dynamodb.update_item(",
+                        "                TableName=table_name,",
+                        "                Key={",
+                        "                    'ID':{'S':str(uuid.uuid4())},",
+                        "                    'PostedTime':{'S':datetime.now().isoformat()}",   
+                        "                },",
+                        "                AttributeUpdates={",
+                        "                    'FirstName':{'Value': {'S':firstname}},",
+                        "                    'LastName':{'Value': {'S':lastname}},",
+                        "                    'Feedback':{'Value': {'S':feedback}}",                        
+                        "                }",
+                        "            )",  
+                        "        print(response)",
+                        "        return response['ResponseMetadata']['HTTPStatusCode']",
+                        "    except Exception as e:",
+                        "        print('Actual error is: {0}'.format(e))",
+                        "        return e"
+                    ]]}
+                },
+                "Runtime": "python3.6",
+                "Timeout": "30",
+                "TracingConfig": {
+                    "Mode": "Active"
+                }
+            }
+        },
+        "GetAllCustomerFeedbacks": {
+            "Type": "AWS::Lambda::Function",
+            "DependsOn": "EnterCustomerFeedback",
+            "Properties": {
+                "Description" : "Retrieve all Unicorn feedbacks entered by customers",
+                "FunctionName" : "GetAllCustomerFeedbacks",
+                "Handler": "index.handler",
+                "Role": { "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"] },
+                "Environment": {
+                    "Variables" : 
+                        { 
+                            "table_name": {
+                                "Ref" : "UnicornFeedbackTable" 
+                            }
+                        }
+                },
+                "Code": {
+                    "ZipFile" : { "Fn::Join" : ["\n", [
+                        "import os",
+                        "import json",
+                        "import boto3",
+                        "from boto3.dynamodb.conditions import Key, Attr",
+                        "dynamodb = boto3.resource('dynamodb')",                          
+                        "def handler(event, context):",
+                        "    print('Received event: ' + json.dumps(event, indent=2))",
+                        "    table_name=os.environ['table_name']",
+                        "    table = dynamodb.Table(table_name)",                      
+                        "    try:",                                                
+                        "        response = table.scan(",
+                        "            FilterExpression=Attr('Feedback').exists(),",
+                        "            ProjectionExpression = 'ID,FirstName,LastName,Feedback,PostedTime,Sentiment,Gender'",
+                        "        )",
+                        "        items = response['Items']    ",
+                        "        return items",
+                        "    except Exception as e:",
+                        "        print('Actual error is: {0}'.format(e))",
+                        "        return e"                        
+                    ]]}
+                },
+                "Runtime": "python3.6",
+                "Timeout": "30",
+                "TracingConfig": {
+                    "Mode": "Active"
+                }
+            }
+        },     
+        "NLPWorkshopAPI": {
+            "Type": "AWS::ApiGateway::RestApi",
+            "DependsOn": "GetAllCustomerFeedbacks",
+            "Properties": {
+                "Name": "NLP Workshop API",
+                "Description" : "API to access customer feedback, predict sentiment and identify gender",
+                "FailOnWarnings": true,
+                "Body": {
+                    "swagger":"2.0",
+                    "info":{
+                        "version":"2018-02-16T18:05:24Z",
+                        "title":"NLPWorkshop API"
+                    },
+                    "host":"zejy1hx0p0.execute-api.us-west-2.amazonaws.com",
+                    "basePath":"/test",
+                    "schemes":[
+                        "https"
+                    ],
+                    "paths":{
+                        "/enterfeedback":{
+                            "get":{
+                                "consumes":[
+                                    "application/json"
+                                ],
+                                "produces":[
+                                    "application/json"
+                                ],
+                                "parameters":[
+                                    {
+                                        "name":"LastName",
+                                        "in":"query",
+                                        "required":true,
+                                        "type":"string"
+                                    },
+                                    {
+                                        "name":"FirstName",
+                                        "in":"query",
+                                        "required":true,
+                                        "type":"string"
+                                    },
+                                    {
+                                        "name":"Feedback",
+                                        "in":"query",
+                                        "required":false,
+                                        "type":"string"
+                                    }
+                                ],
+                                "responses":{
+                                    "200":{
+                                        "description":"200 response",
+                                        "schema":{
+                                            "$ref":"#/definitions/Empty"
+                                        },
+                                        "headers":{
+                                            "Access-Control-Allow-Origin":{
+                                                "type":"string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "x-amazon-apigateway-integration":{
+                                    "responses":{
+                                        "default":{
+                                            "statusCode":"200",
+                                            "responseParameters":{
+                                                "method.response.header.Access-Control-Allow-Origin":"'*'"
+                                            }
+                                        }
+                                    },
+                                    "uri": {"Fn::Join": ["",
+                                        ["arn:aws:apigateway:", {"Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", {"Fn::GetAtt": ["EnterCustomerFeedback", "Arn"]}, "/invocations"]
+                                    ]},               
+                                    "passthroughBehavior":"when_no_templates",
+                                    "httpMethod":"POST",
+                                    "requestTemplates":{
+                                        "application/json":"{ \"FirstName\": \"$input.params('FirstName')\",\"LastName\": \"$input.params('LastName')\",\"Feedback\": \"$input.params('Feedback')\"}"
+                                    },
+                                    "contentHandling":"CONVERT_TO_TEXT",
+                                    "type":"aws"
+                                }
+                            },
+                            "options":{
+                                "consumes":[
+                                    "application/json"
+                                ],
+                                "produces":[
+                                    "application/json"
+                                ],
+                                "responses":{
+                                    "200":{
+                                        "description":"200 response",
+                                        "schema":{
+                                            "$ref":"#/definitions/Empty"
+                                        },
+                                        "headers":{
+                                            "Access-Control-Allow-Origin":{
+                                                "type":"string"
+                                            },
+                                            "Access-Control-Allow-Methods":{
+                                                "type":"string"
+                                            },
+                                            "Access-Control-Allow-Headers":{
+                                                "type":"string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "x-amazon-apigateway-integration":{
+                                    "responses":{
+                                        "default":{
+                                            "statusCode":"200",
+                                            "responseParameters":{
+                                                "method.response.header.Access-Control-Allow-Methods":"'GET,OPTIONS'",
+                                                "method.response.header.Access-Control-Allow-Headers":"'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                                                "method.response.header.Access-Control-Allow-Origin":"'*'"
+                                            }
+                                        }
+                                    },
+                                    "passthroughBehavior":"when_no_match",
+                                    "requestTemplates":{
+                                        "application/json":"{\"statusCode\": 200}"
+                                    },
+                                    "type":"mock"
+                                }
+                            }
+                        },
+                        "/getallcontents":{
+                            "get":{
+                                "produces":[
+                                    "application/json"
+                                ],
+                                "responses":{
+                                    "200":{
+                                        "description":"200 response",
+                                        "schema":{
+                                            "$ref":"#/definitions/Empty"
+                                        },
+                                        "headers":{
+                                            "Access-Control-Allow-Origin":{
+                                                "type":"string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "x-amazon-apigateway-integration":{
+                                    "responses":{
+                                        "default":{
+                                            "statusCode":"200",
+                                            "responseParameters":{
+                                                "method.response.header.Access-Control-Allow-Origin":"'*'"
+                                            }
+                                        }
+                                    },
+                                    "uri": {"Fn::Join": ["",
+                                        ["arn:aws:apigateway:", {"Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", {"Fn::GetAtt": ["GetAllCustomerFeedbacks", "Arn"]}, "/invocations"]
+                                    ]},                     
+                                    "passthroughBehavior":"when_no_match",
+                                    "httpMethod":"POST",
+                                    "contentHandling":"CONVERT_TO_TEXT",
+                                    "type":"aws"
+                                }
+                            },
+                            "options":{
+                                "consumes":[
+                                    "application/json"
+                                ],
+                                "produces":[
+                                    "application/json"
+                                ],
+                                "responses":{
+                                    "200":{
+                                        "description":"200 response",
+                                        "schema":{
+                                            "$ref":"#/definitions/Empty"
+                                        },
+                                        "headers":{
+                                            "Access-Control-Allow-Origin":{
+                                                "type":"string"
+                                            },
+                                            "Access-Control-Allow-Methods":{
+                                                "type":"string"
+                                            },
+                                            "Access-Control-Allow-Headers":{
+                                                "type":"string"
+                                            }
+                                        }
+                                    }
+                                },
+                                "x-amazon-apigateway-integration":{
+                                    "responses":{
+                                        "default":{
+                                            "statusCode":"200",
+                                            "responseParameters":{
+                                                "method.response.header.Access-Control-Allow-Methods":"'GET,OPTIONS'",
+                                                "method.response.header.Access-Control-Allow-Headers":"'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                                                "method.response.header.Access-Control-Allow-Origin":"'*'"
+                                            }
+                                        }
+                                    },
+                                    "passthroughBehavior":"when_no_match",
+                                    "requestTemplates":{
+                                        "application/json":"{\"statusCode\": 200}"
+                                    },
+                                    "type":"mock"
+                                }
+                            }
+                        }                       
+                    },
+                    "definitions":{
+                        "Empty":{
+                            "type":"object",
+                            "title":"Empty Schema"
+                        }
+                    }
+                }                
+            }
+        },    
+        "EnterCustomerFeedbackLambdaPermission": {
+            "Type": "AWS::Lambda::Permission",
+            "DependsOn": "NLPWorkshopAPI",
+            "Properties": {
+                "Action": "lambda:invokeFunction",
+                "FunctionName": {"Fn::GetAtt": ["EnterCustomerFeedback", "Arn"]},
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {"Fn::Join": ["", 
+                    ["arn:aws:execute-api:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":", {"Ref": "NLPWorkshopAPI"}, "/*"]
+                ]}
+            }
+        }, 
+        "GetAllCustomerFeedbacksLambdaPermission": {
+            "Type": "AWS::Lambda::Permission",
+            "DependsOn": "NLPWorkshopAPI",
+            "Properties": {
+                "Action": "lambda:invokeFunction",
+                "FunctionName": {"Fn::GetAtt": ["GetAllCustomerFeedbacks", "Arn"]},
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {"Fn::Join": ["", 
+                    ["arn:aws:execute-api:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":", {"Ref": "NLPWorkshopAPI"}, "/*"]
+                ]}
+            }
+        },         
+        "NLPWorkshopAPIDeployment": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "DependsOn": "NLPWorkshopAPI",
+            "Properties": {
+                "RestApiId": {"Ref": "NLPWorkshopAPI"},
+                "StageName": "vocweb",
+                "StageDescription": {
+                    "LoggingLevel": "INFO",
+                    "MetricsEnabled": "true"
+                }
+            }
+        },               
+        "WebsiteBucket": {
+            "Type": "AWS::S3::Bucket",
+            "DependsOn": "NLPWorkshopAPIDeployment",            
+            "Properties": {
+                "BucketName" : {"Ref" : "HostingBucket"},                
+                "WebsiteConfiguration": {
+                    "IndexDocument": "unicornfeedback.html"
+                }     
+            }
+        },  
+        "WebsiteBucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",    
+            "DependsOn": "WebsiteBucket",             
+            "Properties": {
+                "Bucket" : {"Ref" : "WebsiteBucket"},                
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": {
+                        "Effect": "Allow",
+                        "Principal": "*",
+                        "Action": "s3:GetObject",
+                        "Resource": { "Fn::Sub" : "arn:aws:s3:::${WebsiteBucket}/*" }                    
+                    }
+                }
+            }
+        },
+        "CopySourceFilesFunction": {
+            "Type": "AWS::Lambda::Function",
+            "DependsOn": "WebsiteBucketPolicy",
+            "Properties": {
+                "Description" : "Copies objects from a source S3 bucket to a destination",
+                "FunctionName" : "CopySourceFilesFunction",
+                "Handler": "index.handler",
+                "Role": { "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"] },
+                "Code": {
+                    "ZipFile" : { "Fn::Join" : ["\n", [
+                        "import os",
+                        "import json",
+                        "import boto3",
+                        "import logging",
+                        "import cfnresponse",
+                        "from botocore.exceptions import ClientError",
+                        "s3 = boto3.client('s3')",
+                        "logger = logging.getLogger()",
+                        "logger.setLevel(logging.INFO)",
+                        "def handler(event, context):",
+                        "    logger.info('Received event:' + json.dumps(event))",
+                        "    source_bucket = event['ResourceProperties']['SourceBucket']",
+                        "    source_prefix = event['ResourceProperties'].get('SourceKeyPrefix') or ''",
+                        "    bucket = event['ResourceProperties']['Bucket']",
+                        "    prefix = event['ResourceProperties'].get('Prefix') or ''",
+                        "    result = cfnresponse.SUCCESS",
+                        "    try:",
+                        "        if event['RequestType'] == 'Create' or event['RequestType'] == 'Update':",
+                        "            result = copy_objects(source_bucket, source_prefix, bucket, prefix)",
+                        "        elif event['RequestType'] == 'Delete':",
+                        "            result = delete_objects(bucket, prefix)",
+                        "    except ClientError as e:",
+                        "        logger.error('Error: '+e)",
+                        "        result = cfnresponse.FAILED",
+                        "    cfnresponse.send(event, context, result, {})",
+                        "def copy_objects(source_bucket, source_prefix, bucket, prefix):",
+                        "    paginator = s3.get_paginator('list_objects_v2')",
+                        "    page_iterator = paginator.paginate(Bucket=source_bucket, Prefix=source_prefix)",
+                        "    for key in {x['Key'] for page in page_iterator for x in page['Contents']}:",
+                        "        dest_key = os.path.join(prefix, os.path.relpath(key, source_prefix))",
+                        "        if not key.endswith('/'):",
+                        "            print('copy {} to {}'.format(key, dest_key))",
+                        "            s3.copy_object(CopySource={'Bucket': source_bucket, 'Key': key}, Bucket=bucket, Key = dest_key)",
+                        "    return cfnresponse.SUCCESS",
+                        "def delete_objects(bucket, prefix):",
+                        "    paginator = s3.get_paginator('list_objects_v2')",
+                        "    page_iterator = paginator.paginate(Bucket=bucket, Prefix=prefix)",
+                        "    objects = [{'Key': x['Key']} for page in page_iterator for x in page['Contents']]",
+                        "    s3.delete_objects(Bucket=bucket, Delete={'Objects': objects})",
+                        "    return cfnresponse.SUCCESS"                       
+                    ]]}
+                },
+                "Runtime": "python3.6",
+                "Timeout": "30",
+                "TracingConfig": {
+                    "Mode": "Active"
+                }
+            }
+        },
+        "WebsiteContentCustom": {
+            "Type": "Custom::S3Objects",
+            "DependsOn": "CopySourceFilesFunction",
+            "Properties": {
+                "ServiceToken": { "Fn::GetAtt" : ["CopySourceFilesFunction", "Arn"] },
+                "SourceBucket": {"Ref" : "SourceBucket"},
+                "SourceKeyPrefix": {"Ref" : "SourceKeyPrefix"},
+                "Bucket": {"Ref" : "HostingBucket"}
+            }
+        },
+        "UpdateJavascriptConfigFunction": {
+            "Type": "AWS::Lambda::Function",
+            "DependsOn": "WebsiteContentCustom",
+            "Properties": {
+                "Description" : "Adds the API endpoint to the config.js file",
+                "FunctionName" : "UpdateJavascriptConfigFunction",
+                "Handler": "index.handler",
+                "Role": { "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"] },
+                "Code": {
+                    "ZipFile" : { "Fn::Join" : ["\n", [
+                        "import json",
+                        "import boto3",
+                        "import cfnresponse",
+                        "s3 = boto3.resource('s3')",
+                        "def create(properties, physical_id):",
+                        "    bucket = properties['Bucket']",
+                        "    config_object = s3.Object(bucket, 'js/config.js').get()",
+                        "    config_data = config_object['Body'].read().decode('utf-8')",
+                        "    config_data = config_data.replace('Base URL of your API including the stage', properties['InvokeUrl'])",
+                        "    config = s3.Object(bucket,'js/config.js')",
+                        "    config.put(Body=config_data)",
+                        "    return cfnresponse.SUCCESS, None",
+                        "def update(properties, physical_id):",
+                        "    return create(properties, physical_id)",
+                        "def delete(properties, physical_id):",
+                        "    return cfnresponse.SUCCESS, physical_id",
+                        "def handler(event, context):",
+                        "    print('Received event: ' + json.dumps(event))",
+                        "    status = cfnresponse.FAILED",
+                        "    new_physical_id = None",
+                        "    try:",
+                        "        properties = event.get('ResourceProperties')",
+                        "        physical_id = event.get('PhysicalResourceId')",
+                        "        status, new_physical_id = {",
+                        "            'Create': create,",
+                        "            'Update': update,",
+                        "            'Delete': delete",
+                        "        }.get(event['RequestType'], lambda x, y: (cfnresponse.FAILED, None))(properties, physical_id)",
+                        "    except Exception as e:",
+                        "        print('Exception: ' + e)",
+                        "        status = cfnresponse.FAILED",
+                        "    finally:",
+                        "        cfnresponse.send(event, context, status, {}, new_physical_id)"                       
+                    ]]}
+                },
+                "Runtime": "python3.6",
+                "Timeout": "30",
+                "TracingConfig": {
+                    "Mode": "Active"
+                }
+            }
+        },
+        "UpdateConfigCustom": {
+            "Type": "Custom::ConfigFile",
+            "DependsOn": "UpdateJavascriptConfigFunction",
+            "Properties": {
+                "ServiceToken": { "Fn::GetAtt" : ["UpdateJavascriptConfigFunction", "Arn"] },
+                "Bucket": {"Ref" : "HostingBucket"},
+                "InvokeUrl": {"Fn::Join": ["", 
+                    ["https://", {"Ref": "NLPWorkshopAPI"}, ".execute-api.", {"Ref": "AWS::Region"}, ".amazonaws.com", "/", "vocweb"]
+                ]}                
+            }
+        }                  
+    },
+    "Outputs" : {
+        "HostingBucket" : {
+            "Description" : "S3 Bucket used to serve website and host training data and model.",
+            "Value" : {
+                "Ref" : "WebsiteBucket"
+            },
+            "Export" : { 
+                "Name" : {"Fn::Sub": "${AWS::StackName}-S3Bucket" }
+            }
+        },           
+        "UnicornFeedbackDynamoDBTable" : {
+            "Description" : "DynamoDB Table name where customer feedbacks would be stored.",
+            "Value" : {
+                "Ref" : "UnicornFeedbackTable"
+            },
+            "Export" : { 
+                "Name" : {"Fn::Sub": "${AWS::StackName}-DynamoTable" }
+            }
+        },      
+        "LambdaExecutionIAMRole" : {
+            "Description" : "IAM Role to be assumed by any Lambda function within the VOC Application .",
+            "Value" : {
+                "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"]
+            },
+            "Export" : { 
+                "Name" : {"Fn::Sub": "${AWS::StackName}-LambdaRole" }
+            }
+        }, 
+        "NLPWorkshopAPIRootResource": {
+            "Description" : "Rest API root resource for NLP Workshop",
+            "Value": {
+                "Fn::GetAtt": ["NLPWorkshopAPI", "RootResourceId"]
+            },
+            "Export" : { 
+                "Name" : {"Fn::Sub": "${AWS::StackName}-ApiGatewayRoot" }
+            }
+        },                     
+        "NLPWorkshopAPIId": {
+            "Description" : "Rest API ID for NLP Workshop",
+            "Value": {
+                "Ref": "NLPWorkshopAPI"
+            },
+            "Export" : { 
+                "Name" : {"Fn::Sub": "${AWS::StackName}-ApiGatewayId" }
+            }
+        },      
+        "NLPWorkshopAPIDeploymentId": {
+            "Description" : "Rest API Deplyment ID for NLP Workshop",
+            "Value": {
+                "Ref": "NLPWorkshopAPIDeployment"
+            },
+            "Export" : { 
+                "Name" : {"Fn::Sub": "${AWS::StackName}-ApiGatewayDeploymentId" }
+            }
+        },           
+        "WebsiteURL": {
+            "Description" : "URL for Unicorn Feedback website",
+            "Value": {
+                "Fn::Join": ["/", [{"Fn::GetAtt" : [ "WebsiteBucket" , "WebsiteURL" ]}, "unicornfeedback.html"]]
+            }
+        }         
+    }    
+}

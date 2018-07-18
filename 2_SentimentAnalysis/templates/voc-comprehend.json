@@ -1,0 +1,267 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters" : {
+        "WebappStackName" :{
+            "Type": "String",
+            "Description": "Cloudformation stack name used to create the VOC Web application",                        
+            "Default": "nlp-workshop-voc-webapp"
+        }      
+    }, 
+    "Resources": {
+        "PredictFeedbackSentiment": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Description" : "Invoke Comprehend to predict sentiment of feedback provided by customers.",
+                "FunctionName" : "PredictFeedbackSentiment",
+                "Handler": "index.handler",
+                "Role": { 
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-LambdaRole"
+                    } 
+                },
+                "Environment": {
+                    "Variables" : 
+                        { 
+                            "table_name": {
+                                "Fn::ImportValue" : {
+                                    "Fn::Sub" : "${WebappStackName}-DynamoTable"
+                                }                                   
+                            }
+                        }
+                },
+                "Code": {
+                    "ZipFile" : { "Fn::Join" : ["\n", [
+                        "import os",
+                        "import json",
+                        "import boto3",
+                        "from boto3.dynamodb.conditions import Key, Attr",
+                        "dynamodb = boto3.client('dynamodb')",
+                        "comprehend = boto3.client('comprehend')",                        
+                        "def handler(event, context):",
+                        "    print('Received event: ' + json.dumps(event, indent=2))",
+                        "    ids = event['ID'].split(',')",
+                        "    table_name=os.environ['table_name']",
+                        "    responses = []",
+                        "    for id in ids:",
+                        "        try:",
+                        "            response = dynamodb.scan(",
+                        "                ExpressionAttributeNames={'#ID': 'ID'},",
+                        "                ExpressionAttributeValues={':id' : {'S': id}},",
+                        "                FilterExpression='#ID = :id',",
+                        "                TableName=table_name",
+                        "            )",
+                        "            items = response['Items']",
+                        "            postedtime = items[0]['PostedTime']['S']",
+                        "            if 'Feedback' in items[0]:",
+                        "                feedback = items[0]['Feedback']['S']",
+                        "                response = comprehend.detect_sentiment(Text=feedback, LanguageCode='en')",
+                        "                sentiment = response['Sentiment']",
+                        "                print(sentiment)",                        
+                        "                response = dynamodb.update_item(",
+                        "                    ExpressionAttributeNames={'#ST': 'Sentiment'},",
+                        "                    ExpressionAttributeValues={':st' : {'S': sentiment}},",
+                        "                    Key={'ID': {'S': id}, 'PostedTime': {'S': postedtime}},",
+                        "                    ReturnValues='ALL_NEW',",
+                        "                    TableName=table_name,",
+                        "                    UpdateExpression='SET #ST = :st'",
+                        "                )",
+                        "                responses.append('{} - {}'.format(response['Attributes']['ID']['S'], response['Attributes']['Sentiment']['S']))",
+                        "        except Exception as e:",
+                        "            print('Actual error is: {0}'.format(e))",
+                        "    return responses"                        
+                    ]]}
+                },
+                "Runtime": "python3.6",
+                "Timeout": "30",
+                "TracingConfig": {
+                    "Mode": "Active"
+                }
+            }
+        }, 
+        "PredictFeedbackSentimentLambdaPermission": {
+            "Type": "AWS::Lambda::Permission",
+            "DependsOn": "PredictFeedbackSentiment",
+            "Properties": {
+                "Action": "lambda:invokeFunction",
+                "FunctionName": {"Fn::GetAtt": ["PredictFeedbackSentiment", "Arn"]},
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {"Fn::Join": ["", 
+                    [
+                        "arn:aws:execute-api:", 
+                        {"Ref": "AWS::Region"}, 
+                        ":", 
+                        {"Ref": "AWS::AccountId"}, 
+                        ":", 
+                        {"Fn::ImportValue" : { "Fn::Sub" : "${WebappStackName}-ApiGatewayId"}}, 
+                        "/*"
+                    ]                    
+                ]}
+            }
+        },        
+        "EmptyModel": {
+            "Type": "AWS::ApiGateway::Model",
+            "DependsOn": "PredictFeedbackSentimentLambdaPermission",
+            "Properties": {
+                "ContentType": "application/json",
+                "Name": "EmptyModel",
+                "RestApiId": {
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-ApiGatewayId"
+                    } 
+                },
+                "Schema": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "title" : "Empty Schema",
+                    "type" : "object"
+                }
+            }
+        },           
+        "APIResourcePredictSentiment" : {
+            "Type" : "AWS::ApiGateway::Resource",
+            "DependsOn": "EmptyModel",
+            "Properties" : {
+                "ParentId" :  {
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-ApiGatewayRoot"
+                    } 
+                },
+                "PathPart" : "predictsentiment",
+                "RestApiId" : {
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-ApiGatewayId"
+                    }                   
+                }
+            }
+              
+        },       
+        "APIMethodPredictSentiment" : {
+            "Type" : "AWS::ApiGateway::Method",
+            "DependsOn": "APIResourcePredictSentiment",
+            "Properties" : {
+                "RestApiId" : {
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-ApiGatewayId"
+                    }                     
+                },    
+                "ResourceId" : {
+                    "Ref" : "APIResourcePredictSentiment"
+                },    
+                "HttpMethod" : "GET",                            
+                "AuthorizationType" : "NONE",                
+                "Integration" : {
+                    "Type" : "AWS",
+                    "IntegrationHttpMethod": "POST",
+                    "Uri": {"Fn::Join": ["",
+                        [
+                            "arn:aws:apigateway:", 
+                            {"Ref": "AWS::Region"}, 
+                            ":lambda:path/2015-03-31/functions/", 
+                            {"Fn::GetAtt": ["PredictFeedbackSentiment", "Arn"]}, 
+                            "/invocations"]
+                    ]},
+                    "IntegrationResponses": [{     
+                        "ResponseParameters": {
+                            "method.response.header.Access-Control-Allow-Origin": "'*'"
+                        },       
+                        "ResponseTemplates": {
+                            "application/json": "$input.json('$')"
+                        },                           
+                        "StatusCode": 200
+                    }],
+                    "PassthroughBehavior": "WHEN_NO_TEMPLATES",
+                    "RequestTemplates": {
+                        "application/json":"{ \"ID\": \"$input.params('Id')\" }"
+                    }                     
+                },
+                "RequestParameters" : { 
+                    "method.request.querystring.Id":"true"                 
+                },                  
+                "MethodResponses": [{ 
+                    "ResponseModels": {
+                      "application/json": {"Ref": "EmptyModel"}
+                    },                
+                  "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": true
+                  },                  
+                  "StatusCode": 200
+              }]        
+            }
+        },
+        "APIMethodOptionPredictSentiment": {
+            "Type": "AWS::ApiGateway::Method",
+            "DependsOn": "APIMethodPredictSentiment",
+            "Properties": {
+                "RestApiId" : {
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-ApiGatewayId"
+                    }                     
+                },    
+                "ResourceId" : {
+                    "Ref" : "APIResourcePredictSentiment"
+                }, 
+                "HttpMethod": "OPTIONS",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                    "Type": "MOCK",
+                    "IntegrationResponses": [{
+                        "ResponseParameters": {
+                            "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                            "method.response.header.Access-Control-Allow-Methods": "'POST,GET,OPTIONS'",
+                            "method.response.header.Access-Control-Allow-Origin": "'*'"
+                        },         
+                        "ResponseTemplates": {
+                            "application/json": "{}"
+                        },                           
+                        "StatusCode": 200
+                    }],
+                    "PassthroughBehavior": "WHEN_NO_MATCH",
+                    "RequestTemplates": {
+                      "application/json": "{'statusCode': 200}"
+                    }                 
+                },
+                "MethodResponses": [{
+                    "ResponseParameters": {
+                        "method.response.header.Access-Control-Allow-Headers": false,
+                        "method.response.header.Access-Control-Allow-Methods": false,
+                        "method.response.header.Access-Control-Allow-Origin": false
+                    },                  
+                    "StatusCode": 200
+                }]
+            }
+        },  
+        "NLPWorkshopAPIDeploymentWithSentimentPredictor": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "DependsOn": "APIMethodOptionPredictSentiment",
+            "Properties": {
+                "RestApiId": {
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-ApiGatewayId"
+                    }                      
+                },
+                "StageName": "vocweb"
+            }
+        }       
+    },
+    "Outputs" : {     
+        "NLPWorkshopAPIId": {
+            "Description" : "Rest API ID for NLP Workshop",
+            "Value": {
+                "Fn::ImportValue" : {
+                    "Fn::Sub" : "${WebappStackName}-ApiGatewayId"
+                } 
+            },
+            "Export" : { 
+                "Name" : {"Fn::Sub": "${AWS::StackName}-ApiGatewayId" }
+            }
+        },           
+        "NLPWorkshopAPIDeploymentId": {
+            "Description" : "Rest API Deplyment ID for NLP Workshop",
+            "Value": {
+                "Ref": "NLPWorkshopAPIDeploymentWithSentimentPredictor"
+            },
+            "Export" : { 
+                "Name" : {"Fn::Sub": "${AWS::StackName}-ApiGatewayDeploymentId" }
+            }
+        }     
+    }    
+}

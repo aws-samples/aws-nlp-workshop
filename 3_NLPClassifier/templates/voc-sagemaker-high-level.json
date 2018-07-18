@@ -1,0 +1,285 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters" : {
+        "WebappStackName" :{
+            "Type": "String",
+            "Description": "Cloudformation stack name used to create the VOC Web application",                        
+            "Default": "nlp-workshop-voc-webapp"
+        },
+        "SageMakerEndPoint" :{
+            "Type": "String",
+            "Description": "Sagemaker hosted endpoint name for fender identification"                       
+        }               
+    }, 
+    "Resources": {
+        "IdentifyCustomerGender": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Description" : "Invoke SageMaker hosted endpoint to identify gender of customers based on their first names.",
+                "FunctionName" : "IdentifyCustomerGender",
+                "Handler": "index.handler",
+                "Role": { 
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-LambdaRole"
+                    } 
+                },
+                "Environment": {
+                    "Variables" : { 
+                        "table_name": {
+                            "Fn::ImportValue" : {
+                                "Fn::Sub" : "${WebappStackName}-DynamoTable"
+                            }                                   
+                        },
+                        "sagemaker_endpoint": {
+                            "Ref" : "SageMakerEndPoint"                                 
+                        }
+                    }                    
+                },
+                "Code": {
+                    "ZipFile" : { "Fn::Join" : ["\n", [
+                        "import os",
+                        "import json",
+                        "import boto3",
+                        "from boto3.dynamodb.conditions import Key, Attr",
+                        "dynamodb = boto3.client('dynamodb')",
+                        "sagemaker = boto3.client('sagemaker-runtime')",
+                        "def handler(event, context):",
+                        "    print('Received event: ' + json.dumps(event, indent=2))",
+                        "    ids = event['ID'].split(',')",
+                        "    table_name=os.environ['table_name']",
+                        "    sagemaker_endpoint=os.environ['sagemaker_endpoint']",
+                        "    responses = []",
+                        "    for id in ids:",
+                        "        try:",
+                        "            response = dynamodb.scan(",
+                        "                ExpressionAttributeNames={'#ID': 'ID'},",
+                        "                ExpressionAttributeValues={':id' : {'S': id}},",
+                        "                FilterExpression='#ID = :id',",
+                        "                TableName=table_name",
+                        "            )",
+                        "            items = response['Items']",
+                        "            postedtime = items[0]['PostedTime']['S']",
+                        "            if 'FirstName' in items[0]:",
+                        "                firstName = items[0]['FirstName']['S']",
+                        "                json_request = '{\"name\":\"'+firstName+'\"}'",
+                        "                response = sagemaker.invoke_endpoint(",
+                        "                        EndpointName=sagemaker_endpoint,",
+                        "                        Body=json_request,",
+                        "                        ContentType='text/csv'",
+                        "                    )",
+                        "                response = json.loads(response['Body'].read().decode('utf-8'))",
+                        "                print(response)",
+                        "                model_response = response['outputs']['Gender']['floatVal'][0]",
+                        "                # The model has been trained to output 1 for Female and 0 for Male",
+                        "                # So, using 0.5 to classify the prediction",
+                        "                gender = 'Female'",
+                        "                if (model_response < .5):",
+                        "                    gender = 'Male'",
+                        "                response = dynamodb.update_item(",
+                        "                    ExpressionAttributeNames={'#GD': 'Gender'},",
+                        "                    ExpressionAttributeValues={':gd' : {'S': gender}},",
+                        "                    Key={'ID': {'S': id}, 'PostedTime': {'S': postedtime}},",
+                        "                    ReturnValues='ALL_NEW',",
+                        "                    TableName=table_name,",
+                        "                    UpdateExpression='SET #GD = :gd'",
+                        "                )",
+                        "                responses.append('{} - {}'.format(response['Attributes']['FirstName']['S'], response['Attributes']['Gender']['S']))",
+                        "        except Exception as e:",
+                        "            print('Actual error is: {0}'.format(e))",
+                        "    return responses"                      
+                    ]]}
+                },
+                "Runtime": "python3.6",
+                "Timeout": "300",
+                "TracingConfig": {
+                    "Mode": "Active"
+                }
+            }
+        }, 
+        "IdentifyCustomerGenderLambdaPermission": {
+            "Type": "AWS::Lambda::Permission",
+            "DependsOn": "IdentifyCustomerGender",
+            "Properties": {
+                "Action": "lambda:invokeFunction",
+                "FunctionName": {"Fn::GetAtt": ["IdentifyCustomerGender", "Arn"]},
+                "Principal": "apigateway.amazonaws.com",
+                "SourceArn": {"Fn::Join": ["", 
+                    [
+                        "arn:aws:execute-api:", 
+                        {"Ref": "AWS::Region"}, 
+                        ":", 
+                        {"Ref": "AWS::AccountId"}, 
+                        ":", 
+                        {"Fn::ImportValue" : { "Fn::Sub" : "${WebappStackName}-ApiGatewayId"}}, 
+                        "/*"
+                    ]                    
+                ]}
+            }
+        },     
+        "EmptyModel2": {
+            "Type": "AWS::ApiGateway::Model",
+            "DependsOn": "IdentifyCustomerGenderLambdaPermission",
+            "Properties": {
+                "ContentType": "application/json",
+                "Name": "EmptyModel2",
+                "RestApiId": {
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-ApiGatewayId"
+                    } 
+                },
+                "Schema": {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "title" : "Empty Schema",
+                    "type" : "object"
+                }
+            }
+        },                      
+        "APIResourceIdentifyGender" : {
+            "Type" : "AWS::ApiGateway::Resource",
+            "DependsOn": "EmptyModel2",
+            "Properties" : {
+                "ParentId" :  {
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-ApiGatewayRoot"
+                    } 
+                },
+                "PathPart" : "identifygender",
+                "RestApiId" : {
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-ApiGatewayId"
+                    }                   
+                }
+            }
+              
+        },       
+        "APIMethodIdentifyGender" : {
+            "Type" : "AWS::ApiGateway::Method",
+            "DependsOn": "APIResourceIdentifyGender",
+            "Properties" : {
+                "RestApiId" : {
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-ApiGatewayId"
+                    }                     
+                },    
+                "ResourceId" : {
+                    "Ref" : "APIResourceIdentifyGender"
+                },    
+                "HttpMethod" : "GET",                            
+                "AuthorizationType" : "NONE",                
+                "Integration" : {
+                    "Type" : "AWS",
+                    "IntegrationHttpMethod": "POST",
+                    "Uri": {"Fn::Join": ["",
+                        [
+                            "arn:aws:apigateway:", 
+                            {"Ref": "AWS::Region"}, 
+                            ":lambda:path/2015-03-31/functions/", 
+                            {"Fn::GetAtt": ["IdentifyCustomerGender", "Arn"]}, 
+                            "/invocations"]
+                    ]},
+                    "IntegrationResponses": [{     
+                        "ResponseParameters": {
+                            "method.response.header.Access-Control-Allow-Origin": "'*'"
+                        },       
+                        "ResponseTemplates": {
+                            "application/json": "$input.json('$')"
+                        },                           
+                        "StatusCode": 200
+                    }],
+                    "PassthroughBehavior": "WHEN_NO_TEMPLATES",
+                    "RequestTemplates": {
+                        "application/json":"{ \"ID\": \"$input.params('Id')\" }"
+                    }                     
+                },
+                "RequestParameters" : { 
+                    "method.request.querystring.Id":"true"                 
+                },                  
+                "MethodResponses": [{ 
+                    "ResponseModels": {
+                      "application/json": {"Ref": "EmptyModel2"}
+                    },                
+                  "ResponseParameters": {
+                      "method.response.header.Access-Control-Allow-Origin": true
+                  },                  
+                  "StatusCode": 200
+              }]        
+            }
+        },
+        "APIMethodOptionIdentifyGender": {
+            "Type": "AWS::ApiGateway::Method",
+            "DependsOn": "APIMethodIdentifyGender",
+            "Properties": {
+                "RestApiId" : {
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-ApiGatewayId"
+                    }                     
+                },    
+                "ResourceId" : {
+                    "Ref" : "APIResourceIdentifyGender"
+                }, 
+                "HttpMethod": "OPTIONS",
+                "AuthorizationType": "NONE",
+                "Integration": {
+                    "Type": "MOCK",
+                    "IntegrationResponses": [{
+                        "ResponseParameters": {
+                            "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                            "method.response.header.Access-Control-Allow-Methods": "'POST,GET,OPTIONS'",
+                            "method.response.header.Access-Control-Allow-Origin": "'*'"
+                        },         
+                        "ResponseTemplates": {
+                            "application/json": "{}"
+                        },                           
+                        "StatusCode": 200
+                    }],
+                    "PassthroughBehavior": "WHEN_NO_MATCH",
+                    "RequestTemplates": {
+                      "application/json": "{'statusCode': 200}"
+                    }                 
+                },
+                "MethodResponses": [{
+                    "ResponseParameters": {
+                        "method.response.header.Access-Control-Allow-Headers": false,
+                        "method.response.header.Access-Control-Allow-Methods": false,
+                        "method.response.header.Access-Control-Allow-Origin": false
+                    },                  
+                    "StatusCode": 200
+                }]
+            }
+        },  
+        "NLPWorkshopAPIDeploymentWithGenderIdentifier": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "DependsOn": "APIMethodOptionIdentifyGender",
+            "Properties": {
+                "RestApiId": {
+                    "Fn::ImportValue" : {
+                        "Fn::Sub" : "${WebappStackName}-ApiGatewayId"
+                    }                      
+                },
+                "StageName": "vocweb"
+            }
+        }       
+    },
+    "Outputs" : {     
+        "NLPWorkshopAPIId": {
+            "Description" : "Rest API ID for NLP Workshop",
+            "Value": {
+                "Fn::ImportValue" : {
+                    "Fn::Sub" : "${WebappStackName}-ApiGatewayId"
+                } 
+            },
+            "Export" : { 
+                "Name" : {"Fn::Sub": "${AWS::StackName}-ApiGatewayId" }
+            }
+        },           
+        "NLPWorkshopAPIDeploymentId": {
+            "Description" : "Rest API Deplyment ID for NLP Workshop",
+            "Value": {
+                "Ref": "NLPWorkshopAPIDeploymentWithGenderIdentifier"
+            },
+            "Export" : { 
+                "Name" : {"Fn::Sub": "${AWS::StackName}-ApiGatewayDeploymentId" }
+            }
+        }     
+    }    
+}
