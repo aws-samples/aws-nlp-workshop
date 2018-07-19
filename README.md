@@ -1,4 +1,4 @@
-# Serverless NLP Workshop
+# AWS NLP Workshop
 
 In this workshop you will explore the AWS services needed to enhance your a voice-of-the-customer application with Natural Langage Processing techniques.  The application architecture uses [Amazon Comprehend](https://aws.amazon.com/comprehend/), [Amazon SageMaker](https://aws.amazon.com/sagemaker/), [AWS Lambda](https://aws.amazon.com/lambda/), [Amazon API Gateway](https://aws.amazon.com/api-gateway/), [Amazon S3](https://aws.amazon.com/s3/), [Amazon DynamoDB](https://aws.amazon.com/dynamodb/) and [Amazon ECR](https://aws.amazon.com/ecr/). 
   
