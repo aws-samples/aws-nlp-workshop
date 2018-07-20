@@ -131,7 +131,6 @@
             "DependsOn": "LambdaExecutionRole",
             "Properties": {
                 "Description" : "Create a new event entry into Unicorn Feedback table",
-                "FunctionName" : "EnterCustomerFeedback",
                 "Handler": "index.handler",
                 "Role": { "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"] },
                 "Environment": {
@@ -204,7 +203,6 @@
             "DependsOn": "EnterCustomerFeedback",
             "Properties": {
                 "Description" : "Retrieve all Unicorn feedbacks entered by customers",
-                "FunctionName" : "GetAllCustomerFeedbacks",
                 "Handler": "index.handler",
                 "Role": { "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"] },
                 "Environment": {
@@ -529,7 +527,6 @@
             "DependsOn": "WebsiteBucketPolicy",
             "Properties": {
                 "Description" : "Copies objects from a source S3 bucket to a destination",
-                "FunctionName" : "CopySourceFilesFunction",
                 "Handler": "index.handler",
                 "Role": { "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"] },
                 "Code": {
@@ -598,7 +595,6 @@
             "DependsOn": "WebsiteContentCustom",
             "Properties": {
                 "Description" : "Adds the API endpoint to the config.js file",
-                "FunctionName" : "UpdateJavascriptConfigFunction",
                 "Handler": "index.handler",
                 "Role": { "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"] },
                 "Code": {

@@ -12,7 +12,6 @@
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "Description" : "Invoke Comprehend to predict sentiment of feedback provided by customers.",
-                "FunctionName" : "PredictFeedbackSentiment",
                 "Handler": "index.handler",
                 "Role": { 
                     "Fn::ImportValue" : {

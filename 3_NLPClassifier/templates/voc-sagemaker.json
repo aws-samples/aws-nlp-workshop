@@ -16,7 +16,6 @@
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "Description" : "Invoke SageMaker hosted endpoint to identify gender of customers based on their first names.",
-                "FunctionName" : "IdentifyCustomerGender",
                 "Handler": "index.handler",
                 "Role": { 
                     "Fn::ImportValue" : {
