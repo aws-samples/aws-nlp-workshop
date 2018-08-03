@@ -41,6 +41,7 @@ RUN pip3 --no-cache-dir install \
 #    dpkg -i tensorflow-model-server_1.5.0_all.deb
 
 RUN pip3 --no-cache-dir install \
+        keras \
         h5py \
         numpy \
         pandas \
@@ -48,9 +49,6 @@ RUN pip3 --no-cache-dir install \
         sklearn \
         pyyaml \
         pytz
-
-RUN pip3 --no-cache-dir install \
-        keras --no-deps
 
 RUN pip3 --no-cache-dir install \
         flask \

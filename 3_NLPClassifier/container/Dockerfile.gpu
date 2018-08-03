@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         software-properties-common \
         unzip \
         gzip \
-        curl \        
+        curl \
         wget \
         vim \
         git \
@@ -45,8 +45,9 @@ RUN pip3 --no-cache-dir install \
 
 RUN pip3 --no-cache-dir install \
         tensorflow-gpu==1.6.0
-         
+
 RUN pip3 --no-cache-dir install \
+        keras \
         h5py \
         numpy \
         pandas \
@@ -54,9 +55,6 @@ RUN pip3 --no-cache-dir install \
         sklearn \
         pyyaml \
         pytz
-
-RUN pip3 --no-cache-dir install \
-        keras --no-deps
 
 RUN pip3 --no-cache-dir install \
         flask \
