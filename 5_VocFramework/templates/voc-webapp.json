@@ -3,32 +3,32 @@
     "Parameters" : {
         "DynamoDBTableName" :{
             "Type": "String",
-            "Description": "DynamoDB Table name where customer feedbacks would be stored.",                        
+            "Description": "DynamoDB Table name where customer feedbacks would be stored.",
             "AllowedPattern": "^[a-zA-Z0-9._-]{3,255}$",
             "Default": "UnicornCustomerFeedback",
             "ConstraintDescription" : "Should be a Valid DynamoDB Table Name"
-        },        
+        },
         "HostingBucket" :{
             "Type": "String",
-            "Description": " The name for the bucket hosting your website, e.g. 'nlp-yourname'.",                        
+            "Description": " The name for the bucket hosting your website, e.g. 'nlp-yourname'.",
             "AllowedPattern": "^([a-z]|(\\d(?!\\d{0,2}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})))([a-z\\d]|(\\.(?!(\\.|-)))|(-(?!\\.))){1,61}[a-z\\d\\.]$",
             "Default": "nlp-yourname",
             "ConstraintDescription" : "Should be a Valid S3 Bucket Name"
-        },          
+        },
         "SourceBucket" :{
             "Type": "String",
-            "Description": "Source bucket containing the code deployed by this template.",                        
+            "Description": "Source bucket containing the code deployed by this template.",
             "AllowedPattern": "^([a-z]|(\\d(?!\\d{0,2}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})))([a-z\\d]|(\\.(?!(\\.|-)))|(-(?!\\.))){1,61}[a-z\\d\\.]$",
-            "Default": "nlp-workshop",
+            "Default": "nlp-serverless-workshop",
             "ConstraintDescription" : "Should be a Valid S3 Bucket Name"
         },
         "SourceKeyPrefix" :{
             "Type": "String",
-            "Description": "Key prefix for website resources in the source bucket.",                        
+            "Description": "Key prefix for website resources in the source bucket.",
             "Default": "website-source",
             "ConstraintDescription" : "Should be a Valid S3 Bucket Name"
-        }         
-    }, 
+        }
+    },
     "Resources": {
         "UnicornFeedbackTable": {
             "Type": "AWS::DynamoDB::Table",
@@ -53,13 +53,13 @@
                         "AttributeName": "PostedTime",
                         "KeyType": "RANGE"
                     }
-                ],               
+                ],
                 "ProvisionedThroughput": {
                     "ReadCapacityUnits": 5,
                     "WriteCapacityUnits": 5
                 }
             }
-        },         
+        },
         "LambdaExecutionRole": {
             "Type": "AWS::IAM::Role",
             "DependsOn": "UnicornFeedbackTable",
@@ -105,9 +105,9 @@
                                         "dynamodb:DescribeStream",
                                         "dynamodb:GetRecords",
                                         "dynamodb:GetShardIterator",
-                                        "dynamodb:ListStreams", 
-                                        "comprehend:DetectSentiment",   
-                                        "sagemaker:InvokeEndpoint",                                       
+                                        "dynamodb:ListStreams",
+                                        "comprehend:DetectSentiment",
+                                        "sagemaker:InvokeEndpoint",
                                         "s3:ListBucket",
                                         "s3:GetObject",
                                         "s3:PutObject",
@@ -115,11 +115,11 @@
                                         "s3:PutObjectVersionAcl",
                                         "s3:DeleteObject",
                                         "s3:DeleteObjectVersion",
-                                        "s3:CopyObject",                                        
-                                        "xray:PutTraceSegments"                                        
+                                        "s3:CopyObject",
+                                        "xray:PutTraceSegments"
                                     ],
                                     "Resource": "*"
-                                }                                
+                                }
                             ]
                         }
                     }
@@ -134,10 +134,10 @@
                 "Handler": "index.handler",
                 "Role": { "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"] },
                 "Environment": {
-                    "Variables" : 
-                        { 
+                    "Variables" :
+                        {
                             "table_name": {
-                                "Ref" : "UnicornFeedbackTable" 
+                                "Ref" : "UnicornFeedbackTable"
                             }
                         }
                 },
@@ -145,10 +145,10 @@
                     "ZipFile" : { "Fn::Join" : ["\n", [
                         "import os",
                         "import json",
-                        "import uuid",                        
+                        "import uuid",
                         "import boto3",
                         "from datetime import datetime",
-                        "dynamodb = boto3.client('dynamodb')",                        
+                        "dynamodb = boto3.client('dynamodb')",
                         "def handler(event, context):",
                         "    print('Received event: ' + json.dumps(event, indent=2))",
                         "    table_name=os.environ['table_name']",
@@ -156,7 +156,7 @@
                         "    lastname = event['LastName']",
                         "    feedback = ''",
                         "    if 'Feedback' in event:",
-                        "        feedback = event['Feedback']",                        
+                        "        feedback = event['Feedback']",
                         "    data_event_isactive = 'no'",
                         "    try:",
                         "        if feedback == '':",
@@ -164,7 +164,7 @@
                         "                TableName=table_name,",
                         "                Key={",
                         "                    'ID':{'S':str(uuid.uuid4())},",
-                        "                    'PostedTime':{'S':datetime.now().isoformat()}",                        
+                        "                    'PostedTime':{'S':datetime.now().isoformat()}",
                         "                },",
                         "                AttributeUpdates={",
                         "                    'FirstName':{'Value': {'S':firstname}},",
@@ -176,14 +176,14 @@
                         "                TableName=table_name,",
                         "                Key={",
                         "                    'ID':{'S':str(uuid.uuid4())},",
-                        "                    'PostedTime':{'S':datetime.now().isoformat()}",   
+                        "                    'PostedTime':{'S':datetime.now().isoformat()}",
                         "                },",
                         "                AttributeUpdates={",
                         "                    'FirstName':{'Value': {'S':firstname}},",
                         "                    'LastName':{'Value': {'S':lastname}},",
-                        "                    'Feedback':{'Value': {'S':feedback}}",                        
+                        "                    'Feedback':{'Value': {'S':feedback}}",
                         "                }",
-                        "            )",  
+                        "            )",
                         "        print(response)",
                         "        return response['ResponseMetadata']['HTTPStatusCode']",
                         "    except Exception as e:",
@@ -206,10 +206,10 @@
                 "Handler": "index.handler",
                 "Role": { "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"] },
                 "Environment": {
-                    "Variables" : 
-                        { 
+                    "Variables" :
+                        {
                             "table_name": {
-                                "Ref" : "UnicornFeedbackTable" 
+                                "Ref" : "UnicornFeedbackTable"
                             }
                         }
                 },
@@ -219,12 +219,12 @@
                         "import json",
                         "import boto3",
                         "from boto3.dynamodb.conditions import Key, Attr",
-                        "dynamodb = boto3.resource('dynamodb')",                          
+                        "dynamodb = boto3.resource('dynamodb')",
                         "def handler(event, context):",
                         "    print('Received event: ' + json.dumps(event, indent=2))",
                         "    table_name=os.environ['table_name']",
-                        "    table = dynamodb.Table(table_name)",                      
-                        "    try:",                                                
+                        "    table = dynamodb.Table(table_name)",
+                        "    try:",
                         "        response = table.scan(",
                         "            FilterExpression=Attr('Feedback').exists(),",
                         "            ProjectionExpression = 'ID,FirstName,LastName,Feedback,PostedTime,Sentiment,Gender'",
@@ -233,7 +233,7 @@
                         "        return items",
                         "    except Exception as e:",
                         "        print('Actual error is: {0}'.format(e))",
-                        "        return e"                        
+                        "        return e"
                     ]]}
                 },
                 "Runtime": "python3.6",
@@ -242,7 +242,7 @@
                     "Mode": "Active"
                 }
             }
-        },     
+        },
         "NLPWorkshopAPI": {
             "Type": "AWS::ApiGateway::RestApi",
             "DependsOn": "GetAllCustomerFeedbacks",
@@ -314,7 +314,7 @@
                                     },
                                     "uri": {"Fn::Join": ["",
                                         ["arn:aws:apigateway:", {"Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", {"Fn::GetAtt": ["EnterCustomerFeedback", "Arn"]}, "/invocations"]
-                                    ]},               
+                                    ]},
                                     "passthroughBehavior":"when_no_templates",
                                     "httpMethod":"POST",
                                     "requestTemplates":{
@@ -398,7 +398,7 @@
                                     },
                                     "uri": {"Fn::Join": ["",
                                         ["arn:aws:apigateway:", {"Ref": "AWS::Region"}, ":lambda:path/2015-03-31/functions/", {"Fn::GetAtt": ["GetAllCustomerFeedbacks", "Arn"]}, "/invocations"]
-                                    ]},                     
+                                    ]},
                                     "passthroughBehavior":"when_no_match",
                                     "httpMethod":"POST",
                                     "contentHandling":"CONVERT_TO_TEXT",
@@ -449,7 +449,7 @@
                                     "type":"mock"
                                 }
                             }
-                        }                       
+                        }
                     },
                     "definitions":{
                         "Empty":{
@@ -457,9 +457,9 @@
                             "title":"Empty Schema"
                         }
                     }
-                }                
+                }
             }
-        },    
+        },
         "EnterCustomerFeedbackLambdaPermission": {
             "Type": "AWS::Lambda::Permission",
             "DependsOn": "NLPWorkshopAPI",
@@ -467,11 +467,11 @@
                 "Action": "lambda:invokeFunction",
                 "FunctionName": {"Fn::GetAtt": ["EnterCustomerFeedback", "Arn"]},
                 "Principal": "apigateway.amazonaws.com",
-                "SourceArn": {"Fn::Join": ["", 
+                "SourceArn": {"Fn::Join": ["",
                     ["arn:aws:execute-api:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":", {"Ref": "NLPWorkshopAPI"}, "/*"]
                 ]}
             }
-        }, 
+        },
         "GetAllCustomerFeedbacksLambdaPermission": {
             "Type": "AWS::Lambda::Permission",
             "DependsOn": "NLPWorkshopAPI",
@@ -479,11 +479,11 @@
                 "Action": "lambda:invokeFunction",
                 "FunctionName": {"Fn::GetAtt": ["GetAllCustomerFeedbacks", "Arn"]},
                 "Principal": "apigateway.amazonaws.com",
-                "SourceArn": {"Fn::Join": ["", 
+                "SourceArn": {"Fn::Join": ["",
                     ["arn:aws:execute-api:", {"Ref": "AWS::Region"}, ":", {"Ref": "AWS::AccountId"}, ":", {"Ref": "NLPWorkshopAPI"}, "/*"]
                 ]}
             }
-        },         
+        },
         "NLPWorkshopAPIDeployment": {
             "Type": "AWS::ApiGateway::Deployment",
             "DependsOn": "NLPWorkshopAPI",
@@ -495,29 +495,29 @@
                     "MetricsEnabled": "true"
                 }
             }
-        },               
+        },
         "WebsiteBucket": {
             "Type": "AWS::S3::Bucket",
-            "DependsOn": "NLPWorkshopAPIDeployment",            
+            "DependsOn": "NLPWorkshopAPIDeployment",
             "Properties": {
-                "BucketName" : {"Ref" : "HostingBucket"},                
+                "BucketName" : {"Ref" : "HostingBucket"},
                 "WebsiteConfiguration": {
                     "IndexDocument": "unicornfeedback.html"
-                }     
+                }
             }
-        },  
+        },
         "WebsiteBucketPolicy": {
-            "Type": "AWS::S3::BucketPolicy",    
-            "DependsOn": "WebsiteBucket",             
+            "Type": "AWS::S3::BucketPolicy",
+            "DependsOn": "WebsiteBucket",
             "Properties": {
-                "Bucket" : {"Ref" : "WebsiteBucket"},                
+                "Bucket" : {"Ref" : "WebsiteBucket"},
                 "PolicyDocument": {
                     "Version": "2012-10-17",
                     "Statement": {
                         "Effect": "Allow",
                         "Principal": "*",
                         "Action": "s3:GetObject",
-                        "Resource": { "Fn::Sub" : "arn:aws:s3:::${WebsiteBucket}/*" }                    
+                        "Resource": { "Fn::Sub" : "arn:aws:s3:::${WebsiteBucket}/*" }
                     }
                 }
             }
@@ -570,7 +570,7 @@
                         "    page_iterator = paginator.paginate(Bucket=bucket, Prefix=prefix)",
                         "    objects = [{'Key': x['Key']} for page in page_iterator for x in page['Contents']]",
                         "    s3.delete_objects(Bucket=bucket, Delete={'Objects': objects})",
-                        "    return cfnresponse.SUCCESS"                       
+                        "    return cfnresponse.SUCCESS"
                     ]]}
                 },
                 "Runtime": "python3.6",
@@ -631,7 +631,7 @@
                         "        print('Exception: ' + e)",
                         "        status = cfnresponse.FAILED",
                         "    finally:",
-                        "        cfnresponse.send(event, context, status, {}, new_physical_id)"                       
+                        "        cfnresponse.send(event, context, status, {}, new_physical_id)"
                     ]]}
                 },
                 "Runtime": "python3.6",
@@ -647,11 +647,11 @@
             "Properties": {
                 "ServiceToken": { "Fn::GetAtt" : ["UpdateJavascriptConfigFunction", "Arn"] },
                 "Bucket": {"Ref" : "HostingBucket"},
-                "InvokeUrl": {"Fn::Join": ["", 
+                "InvokeUrl": {"Fn::Join": ["",
                     ["https://", {"Ref": "NLPWorkshopAPI"}, ".execute-api.", {"Ref": "AWS::Region"}, ".amazonaws.com", "/", "vocweb"]
-                ]}                
+                ]}
             }
-        }                  
+        }
     },
     "Outputs" : {
         "HostingBucket" : {
@@ -659,60 +659,60 @@
             "Value" : {
                 "Ref" : "WebsiteBucket"
             },
-            "Export" : { 
+            "Export" : {
                 "Name" : {"Fn::Sub": "${AWS::StackName}-S3Bucket" }
             }
-        },           
+        },
         "UnicornFeedbackDynamoDBTable" : {
             "Description" : "DynamoDB Table name where customer feedbacks would be stored.",
             "Value" : {
                 "Ref" : "UnicornFeedbackTable"
             },
-            "Export" : { 
+            "Export" : {
                 "Name" : {"Fn::Sub": "${AWS::StackName}-DynamoTable" }
             }
-        },      
+        },
         "LambdaExecutionIAMRole" : {
             "Description" : "IAM Role to be assumed by any Lambda function within the VOC Application .",
             "Value" : {
                 "Fn::GetAtt" : ["LambdaExecutionRole", "Arn"]
             },
-            "Export" : { 
+            "Export" : {
                 "Name" : {"Fn::Sub": "${AWS::StackName}-LambdaRole" }
             }
-        }, 
+        },
         "NLPWorkshopAPIRootResource": {
             "Description" : "Rest API root resource for NLP Workshop",
             "Value": {
                 "Fn::GetAtt": ["NLPWorkshopAPI", "RootResourceId"]
             },
-            "Export" : { 
+            "Export" : {
                 "Name" : {"Fn::Sub": "${AWS::StackName}-ApiGatewayRoot" }
             }
-        },                     
+        },
         "NLPWorkshopAPIId": {
             "Description" : "Rest API ID for NLP Workshop",
             "Value": {
                 "Ref": "NLPWorkshopAPI"
             },
-            "Export" : { 
+            "Export" : {
                 "Name" : {"Fn::Sub": "${AWS::StackName}-ApiGatewayId" }
             }
-        },      
+        },
         "NLPWorkshopAPIDeploymentId": {
             "Description" : "Rest API Deplyment ID for NLP Workshop",
             "Value": {
                 "Ref": "NLPWorkshopAPIDeployment"
             },
-            "Export" : { 
+            "Export" : {
                 "Name" : {"Fn::Sub": "${AWS::StackName}-ApiGatewayDeploymentId" }
             }
-        },           
+        },
         "WebsiteURL": {
             "Description" : "URL for Unicorn Feedback website",
             "Value": {
                 "Fn::Join": ["/", [{"Fn::GetAtt" : [ "WebsiteBucket" , "WebsiteURL" ]}, "unicornfeedback.html"]]
             }
-        }         
-    }    
+        }
+    }
 }
