@@ -4,7 +4,7 @@ import boto3
 from boto3.dynamodb.conditions import Key, Attr
 dynamodb = boto3.client('dynamodb')
 comprehend = boto3.client('comprehend')
-def handler(event, context):
+def lambda_handler(event, context):
     print('Received event: ' + json.dumps(event, indent=2))
     ids = event['ID'].split(',')
     table_name=os.environ['table_name']
