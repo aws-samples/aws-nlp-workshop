@@ -78,7 +78,7 @@ Make sure to configure your function to use the `VOCLambdaRole` IAM role you cre
 
 1. Click on **Create function**.
 
-1. Scroll down to the **Function code** section and replace the exiting code in the **lambda_function.py** code editor with the contents of [predictfeedbacksentiment.py](predictfeedbacksentiment.py).
+1. Scroll down to the **Function code** section and replace the exiting code in the **lambda_function.py** code editor with the contents of [predictfeedbacksentiment.py](functions/predictfeedbacksentiment.py).
 
     ![Create Lambda function screenshot](images/create-lambda-function-code.png)
 
