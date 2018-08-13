@@ -89,48 +89,6 @@ Make sure to configure your function to use the `VOCLambdaRole` IAM role you cre
 
 </p></details>
 
-## Implementation Validation
-
-For this section you will test the function that you built using the AWS Lambda console. In the next section you will add a REST API with API Gateway so you can invoke your function from the browser-based application that you deployed in the first module.
-
-1. From the main edit screen for your function, select **Configure test event** from the the **Select a test event...** dropdown.
-    ![Configure test event](images/configure-test-event.png)
-	
-1. Keep **Create new test event** selected.
-
-1. Enter `TestAnalyzeSentiment` in the **Event name** field
-
-1. Insert JSON request body similar to the following into the test event editor:
-
-	```JSON
-    {
-        "ID": "271605fb-f9f0-4d63-b3fd-578a4a5d8c04,f92921dc-bed1-4af0-98ec-eb128add7cf3"
-    }
-    ```
-    Replace the IDs specified with the IDs of the item you have in the DynamoDB table - `UnicornCustomerFeedback`. You can find the items inserted into DynamoDB table flom DynamoDB console, by looking inside the table `UnicornCustomerFeedback`. 
-    ![DynamoDB Entries](images/dynamodb-entries.png)
-    
-    Items will get inserted there as you keep using the web application created in Module-1.
-    You can insert as many items and use as many of those IDs as you like. In case of multiple IDs, you have to separate the entries with comma(,).
-    ![Configure test event](images/configure-test-event-2.png)
-	
-1. Click **Create**.
-
-1. On the main function edit screen click **Test** with `TestAnalyzeSentiment` selected in the dropdown.   
-
-1. Scroll to the top of the page and expand the **Details** section of the **Execution result** section.
-
-1. Verify that the execution succeeded and that the function result looks similar to the following (actual results will vary depedning on the feedbacks records you used):
-
-```JSON
-[
-  "271605fb-f9f0-4d63-b3fd-578a4a5d8c04 - POSITIVE",
-  "f92921dc-bed1-4af0-98ec-eb128add7cf3 - NEGATIVE"
-]
-```
-
-After you have successfully tested your new function using the Lambda console, you can move on to the next section.
-
 ### 2. Add Policy to Lambda Execution Role 
 
 #### Background
@@ -166,6 +124,50 @@ Use the IAM Management Console to add a policy to the exisitng role. Go to the L
     ![Review Policy](images/review-policy.png)
 	
 </p></details>
+
+## Implementation Validation
+
+For this section you will test the function that you built using the AWS Lambda console. In the next section you will add a REST API with API Gateway so you can invoke your function from the browser-based application that you deployed in the first module.
+
+1. From the main edit screen for your function, select **Configure test event** from the the **Select a test event...** dropdown.
+    ![Configure test event](images/configure-test-event.png)
+	
+1. Keep **Create new test event** selected.
+
+1. Enter `TestAnalyzeSentiment` in the **Event name** field
+
+1. Insert JSON request body similar to the following into the test event editor:
+
+	```JSON
+    {
+        "ID": "271605fb-f9f0-4d63-b3fd-578a4a5d8c04,f92921dc-bed1-4af0-98ec-eb128add7cf3"
+    }
+    ```
+    Replace the IDs specified with the IDs of the item you have in the DynamoDB table - `UnicornCustomerFeedback`. You can find the items inserted into DynamoDB table flom DynamoDB console, by looking inside the table `UnicornCustomerFeedback`. 
+    ![DynamoDB Entries](images/dynamodb-entries.png)
+    
+    Items will get inserted there as you keep using the web application created in Module-1.
+    You can insert as many items and use as many of those IDs as you like. In case of multiple IDs, you have to separate the entries with comma(,).
+    ![Configure test event](images/configure-test-event-2.png)
+	
+1. Click **Create**.
+
+1. On the main function edit screen click **Test** with `TestAnalyzeSentiment` selected in the dropdown.   
+
+1. Scroll to the top of the page and expand the **Details** section of the **Execution result** section.
+
+1. Verify that the execution succeeded and that the function result looks similar to the following (actual results will vary depedning on the feedbacks records you used):
+
+    ```JSON
+    [
+    "271605fb-f9f0-4d63-b3fd-578a4a5d8c04 - POSITIVE",
+    "f92921dc-bed1-4af0-98ec-eb128add7cf3 - NEGATIVE"
+    ]
+    ```
+    Status of `Execution result` should display as **"succeeded"**, and expanding the section should show the summary and log output as shown below. 
+    ![Test event execution result](images/test-event-result.png)
+    
+After you have successfully tested your new function using the Lambda console, you can move on to the next section.
 
 ### 3. Add a Resource and Method to the existing REST API
 
