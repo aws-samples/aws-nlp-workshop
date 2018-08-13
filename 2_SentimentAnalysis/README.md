@@ -73,7 +73,7 @@ Make sure to configure your function to use the `VOCLambdaRole` IAM role you cre
 
 1. Ensure `Choose an existing role` is selected from the **Role** dropdown.
 
-1. Select `VOCLambdaRoleComprehend` from the **Existing Role** dropdown.
+1. Select `VOCLambdaRole` from the **Existing Role** dropdown.
     ![Create Lambda function screenshot](images/create-lambda-function.png)
 
 1. Click on **Create function**.
@@ -82,6 +82,9 @@ Make sure to configure your function to use the `VOCLambdaRole` IAM role you cre
 
     ![Create Lambda function screenshot](images/create-lambda-function-code.png)
 
+1. Scroll down to the **"Environment sariables"** section and add an environment variable with Key `table_name` and Value - `UnicornCustomerFeedback`.
+    ![Create Lambda function screenshot](images/create-lambda-env-var.png)
+    
 1. Click **"Save"** in the upper right corner of the page.
 
 </p></details>
@@ -95,32 +98,20 @@ For this section you will test the function that you built using the AWS Lambda 
 	
 1. Keep **Create new test event** selected.
 
-1. Enter `TestRequestEvent` in the **Event name** field
+1. Enter `TestAnalyzeSentiment` in the **Event name** field
 
-1. Copy and paste the following test event into the editor:
+1. Insert JSON request body similar to the following into the test event editor:
 
 	```JSON
     {
-        "path": "/ride",
-        "httpMethod": "POST",
-        "headers": {
-            "Accept": "*/*",
-            "Authorization": "eyJraWQiOiJLTzRVMWZs",
-            "content-type": "application/json; charset=UTF-8"
-        },
-        "queryStringParameters": null,
-        "pathParameters": null,
-        "requestContext": {
-            "authorizer": {
-                "claims": {
-                    "cognito:username": "the_username"
-                }
-            }
-        },
-        "body": "{\"PickupLocation\":{\"Latitude\":47.6174755835663,\"Longitude\":-122.28837066650185}}"
+        "ID": "271605fb-f9f0-4d63-b3fd-578a4a5d8c04,f92921dc-bed1-4af0-98ec-eb128add7cf3"
     }
     ```
-
+    Replace the IDs specified with the IDs of the item you have in the DynamoDB table - `UnicornCustomerFeedback`. You can find the items inserted into DynamoDB table flom DynamoDB console, by looking inside the table `UnicornCustomerFeedback`. 
+    ![DynamoDB Entries](images/dynamodb-entries.png)
+    
+    Items will get inserted there as you keep using the web application created in Module-1.
+    You can insert as many items and use as many of those IDs as you like. In case of multiple IDs, you have to separate the entries with comma(,).
     ![Configure test event](images/configure-test-event-2.png)
 	
 1. Click **Create**.
