@@ -4,7 +4,7 @@ In this module you'll use [Amazon API Gateway](https://aws.amazon.com/api-gatewa
  
 In order to activate “Predict Sentiment” functionality, you will add another method in your API Gateway and a corresponding Lambda function. The Lambda function will invoke Amazon Comprehend Service API to predict the sentiment expressed in user's feedback.
 
-If you're already comfortable with invoking SageMaker API from a Lambda function, or just want to skip ahead and start working with custom model training and hosting on SageMaker, you can launch one fo these AWS CloudFormation templates in the region of your choice to build out the sentiment prediction functionality automatically.
+If you're already comfortable with invoking Amazon Comprehend API from a Lambda function, or just want to skip ahead and start working with custom model training and hosting on SageMaker, you can launch one fo these AWS CloudFormation templates in the region of your choice to build out the sentiment prediction functionality automatically.
 
 Region| Launch
 ------|-----
