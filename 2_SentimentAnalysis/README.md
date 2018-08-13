@@ -116,20 +116,17 @@ For this section you will test the function that you built using the AWS Lambda 
 	
 1. Click **Create**.
 
-1. On the main function edit screen click **Test** with `TestRequestEvent` selected in the dropdown.   
+1. On the main function edit screen click **Test** with `TestAnalyzeSentiment` selected in the dropdown.   
 
 1. Scroll to the top of the page and expand the **Details** section of the **Execution result** section.
 
-1. Verify that the execution succeeded and that the function result looks like the following:
+1. Verify that the execution succeeded and that the function result looks similar to the following (actual results will vary depedning on the feedbacks records you used):
 
 ```JSON
-{
-    "statusCode": 201,
-    "body": "{\"RideId\":\"SvLnijIAtg6inAFUBRT+Fg==\",\"Unicorn\":{\"Name\":\"Rocinante\",\"Color\":\"Yellow\",\"Gender\":\"Female\"},\"Eta\":\"30 seconds\"}",
-    "headers": {
-        "Access-Control-Allow-Origin": "*"
-    }
-}
+[
+  "271605fb-f9f0-4d63-b3fd-578a4a5d8c04 - POSITIVE",
+  "f92921dc-bed1-4af0-98ec-eb128add7cf3 - NEGATIVE"
+]
 ```
 
 After you have successfully tested your new function using the Lambda console, you can move on to the next section.
