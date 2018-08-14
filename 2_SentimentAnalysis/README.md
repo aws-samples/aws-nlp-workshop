@@ -186,6 +186,8 @@ Create a new resource called `/predictsentiment` within your API. Then create a 
 
 1. Ensure the **Resource Path** is set to `predictsentiment`.
 
+1. Select **Enable API Gateway CORS** for the resource. 
+
 1. Click **Create Resource**.
 
     ![Create resource screenshot](images/create-resource.png)
@@ -197,8 +199,6 @@ Create a new resource called `/predictsentiment` within your API. Then create a 
     ![Create method screenshot](images/create-method.png)
 
 1. Select **Lambda Function** for the integration type.
-
-1. Check the box for **Use Lambda Proxy integration**.
 
 1. Select the Region you are using for **Lambda Region**.
 
@@ -245,7 +245,7 @@ From the Amazon API Gateway console, choose Actions, Deploy API. You'll be promp
 
 1. Choose **Deploy**.
 
-1. Note the **Invoke URL**, it should stay the same as the one created during the previous module. The Javascript file under `js/config.js` in your website config bucket should already have the same URL specified for `invokeUrl` parameter. 
+1. Note the **Invoke URL**, it should stay the same as the one created during the previous module. The Javascript file under `js/config.js` in your website config bucket should already have the same URL specified for `invokeUrl`. 
 
 </p></details>
 
