@@ -245,7 +245,7 @@ From the Amazon API Gateway console, choose Actions, Deploy API. You'll be promp
 
 1. Choose **Deploy**.
 
-1. Note the **Invoke URL**. You will use it in the next section.
+1. Note the **Invoke URL**, it should stay the same as the one created during the previous module. The Javascript file under `js/config.js` in your website config bucket should already have the same URL specified for `invokeUrl` parameter. 
 
 </p></details>
 
