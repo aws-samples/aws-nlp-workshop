@@ -173,7 +173,7 @@ After you have successfully tested your new function using the Lambda console, y
 
 API Gateway calls the Lambda function we created at the previous step. Create a GET method that invokes the Lambda function and passes the IDs of each user feedback as an event. 
 
-Create a new resource called `/detectsentiment` within your API. Then create a GET method for that resource and configure it to use a Lambda proxy integration backed by the `DetectSentiment` function you created in the previous section.
+Create a new resource called `/predictsentiment` within your API. Then create a GET method for that resource and configure it to use a Lambda proxy integration backed by the `PredictFeedbackSentiment` function you created in the previous section.
 
 <details>
 <summary><strong>Step-by-step instructions (expand for details)</strong></summary><p>
@@ -182,17 +182,15 @@ Create a new resource called `/detectsentiment` within your API. Then create a G
 
 1. From the **Actions** dropdown select **Create Resource**.
 
-1. Enter `detectsentiment` as the **Resource Name**.
+1. Enter `predictsentiment` as the **Resource Name**.
 
-1. Ensure the **Resource Path** is set to `detectsentiment`.
-
-1. Select **Enable API Gateway CORS** for the resource.
+1. Ensure the **Resource Path** is set to `predictsentiment`.
 
 1. Click **Create Resource**.
 
     ![Create resource screenshot](images/create-resource.png)
 
-1. With the newly created `/detectsentiment` resource selected, from the **Action** dropdown select **Create Method**.
+1. With the newly created `/predictsentiment` resource selected, from the **Action** dropdown select **Create Method**.
 
 1. Select `GET` from the new dropdown that appears, then **click the checkmark**.
 
@@ -204,7 +202,7 @@ Create a new resource called `/detectsentiment` within your API. Then create a G
 
 1. Select the Region you are using for **Lambda Region**.
 
-1. Enter the name of the function you created in the previous module, `DetectSentiment`, for **Lambda Function**.
+1. Enter the name of the function you created in the previous module, `PredictFeedbackSentiment`, for **Lambda Function**.
 
 1. Choose **Save**. Please note, if you get an error that you function does not exist, check that the region you selected matches the one you used in the previous module.
 
@@ -212,7 +210,7 @@ Create a new resource called `/detectsentiment` within your API. Then create a G
 
 1. When prompted to give Amazon API Gateway permission to invoke your function, choose **OK**.
 
-1. Choose on the **Method Request** card.
+1. Click to open the **Method Request** card.
 
 1. Open the **URL Query String Parameters**, and click on **Add query string** link. Enter Name as `Id` and then **click the checkmark**.
 
@@ -241,9 +239,9 @@ From the Amazon API Gateway console, choose Actions, Deploy API. You'll be promp
 
 1. In the **Actions** drop-down list select **Deploy API**.
 
-1. Select **[New Stage]** in the **Deployment stage** drop-down list.
+1. Select the deployment stage named `vocweb` created in the previous modules in the **Deployment stage** drop-down list. This will add the additional method to the same deployment, so that the endpoint base URL stays the same.
 
-1. Enter `prod` for the **Stage Name**.
+    ![API Re-deploy](images/deploy-api.png)
 
 1. Choose **Deploy**.
 
