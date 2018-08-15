@@ -53,6 +53,8 @@ Use the console or AWS CLI to create an Amazon S3 bucket. Keep in mind that your
 
 ## 2. Launching the Notebook Instance
 
+## 3. Launching the Notebook Instance
+
 1. In the upper-right corner of the AWS Management Console, confirm you are in the desired AWS region. Select N. Virginia, Oregon, Ohio, or Ireland.
 
 2. Click on Amazon SageMaker from the list of all services.  This will bring you to the Amazon SageMaker console homepage.
@@ -95,7 +97,7 @@ sudo service docker start
 
 7. You will be taken back to the Create Notebook instance page.  Click **Create notebook instance**.
 
-### 3. Accessing the Notebook Instance
+### 4. Accessing the Notebook Instance
 
 1. Wait for the server status to change to **InService**. This will take several minutes, possibly up to ten but likely less.
 
@@ -105,11 +107,13 @@ sudo service docker start
 
 ![Open Notebook](../images/jupyter-homepage.png)
 
-Now, you are going to build a machine learning model on SageMaker. We have created two methods, the first method uses "High-Level Sagemaker APIs" which abstracts away some part of the packaging steps.
+### 5. Model Training and Hosting
 
-The second method called "Low level API method" which takes you through the lower level APIs, including the steps to create your own docker image to deploy the Keras model.
+1. Now, you are going to build a machine learning model on SageMaker. We have created two methods, the first method uses "High-Level Sagemaker APIs" which abstracts away some part of the packaging steps.
 
-Both methods require a minimum of 30mins to run. Choose one method to proceed.
+   The second method called "Low level API method" which takes you through the lower level APIs, including the steps to create your own docker image to deploy the Keras model.
+
+2. Both methods require a minimum of 30mins to run. Choose one method to proceed.
 
 <details>
 <summary><strong>High - Level Sagemaker API Method (expand for details)</strong></summary><p>
@@ -141,4 +145,4 @@ US West (Oregon) | [![Launch Module 1 in us-west-2](http://docs.aws.amazon.com/A
 EU (Ireland) | [![Launch Module 1 in eu-west-1](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=nlp-workshop-voc-sagemaker&templateURL=https://s3.amazonaws.com/nlp-serverless-workshop/templates/voc-sagemaker.json)
 </details>
 
-Now you will be able to make predictions about the gender of the customer from the first name. Try to see if you can increase the accuracy of your predictions.
+3. Now you will be able to make predictions about the gender of the customer from the first name. Try to see if you can increase the accuracy of your predictions.
