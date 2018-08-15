@@ -92,9 +92,30 @@ Use the console or AWS CLI to create an Amazon S3 bucket. Keep in mind that your
 
 1. Select the Region you've chosen to use for this workshop from the dropdown.
 
-1. Choose **Create** in the lower left of the dialog without selecting a bucket to copy settings from.
-
+1. Choose **Next** in the lower right of the dialog without selecting a bucket to copy settings from.
     ![Create bucket screenshot](images/create-bucket.png)
+
+1. Leave everything default on `Configure options` screen and choose **Next** in the lower right of the dialog.   
+
+1. On `Permissions` screen, grant public read access to this bucket, by selecting the option `Grant public read access to this bucket` under the dropdown for `Manage public permissions`. Note here, that S3 displays a warning stating that the bucket is world readable. This is not recommended for any S3 buckets that you'll store data or files you work with. However, this bucket being a static website hosting bucket, read permission is needed. Therefore ignore this warning, but keep in mind to not make any of your other buckets public. 
+    ![Create bucket screenshot](images/nlp-bucket-permission.png)
+
+1. Choose **Next** in the lower right of the dialog to go to Review screen, and verify the screen showed is similar to the example shown below.
+    ![Create bucket screenshot](images/nlp-bucket-review.png)
+
+1. Choose **Create Bucket** to complete the S3 bucket creation. You'll use this bucket to host your website, which consists of in this case some HTML and JavaScript files.
+
+1. After the bucket is created, you'll return to a list displaying all S3 buckets under your account. You can sort the list in descending order of "Date created", you'll see the newly created bucket at the top.
+
+1. Click on the row displaying the bucket with name `nlp-firstname-lastname`. that you just created.
+    ![Create bucket screenshot](images/nlp-bucket-list.png)
+
+1. From the bucket options dialog that opens on the right side of the screen (with the bucket name shown in a blue header), click the link **Preperties**. This is where you'll mark the bucket as being used for website hosting.
+
+1. From the **Properties** page, choose the card for **Static Website Hosting**
+
+1. Select the radio button for **Use this bucket to host a website**, and type `unicornfeedback.html` under the field for index document.
+    ![Create bucket screenshot](images/nlp-website-hosting.png)
 
 </p></details>
 
