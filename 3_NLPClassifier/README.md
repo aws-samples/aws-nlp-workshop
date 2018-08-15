@@ -89,7 +89,17 @@ If following the low level method for model training and hosting, using this scr
 1. Choose **Lifecycle configurations** under the section **Notebook** on the left panel.
     ![Lifecycle configurations](../images/lifecycle_configuration.png)
 
-1. Choose **Create Bucket**
+1. Choose **Create configuration** to open the create dialo.
+
+1. Type the name `workshop-notebook-lifecycle-config` in the `Name` field.
+
+1. In the tab **Start notebook**, type or copy-paste the `Start Notebook` script from above. (This is required to run docker service, neccessary only if you are following the low level approach for model training and hosting).
+    ![Start notebook script](../images/lifecycle_configuration-start-notebook.png)
+
+1. In the tab **Create notebook**, type or copy-paste the `Create Notebook` script from above. (You can omit the commands to retain `container` folder and to install `docker`, if you choose to follow the high level approach for model training and hosting).
+    ![Create notebook script](../images/lifecycle_configuration-create-notebook.png)
+
+1. Finish configuration by clicking **Create configuration**.
 
 </p></details>
 
