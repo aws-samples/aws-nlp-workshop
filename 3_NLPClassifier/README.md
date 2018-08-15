@@ -58,7 +58,7 @@ Lifecycle configurations are small bootup scripts, that you can use to automate 
 If following the low level method for model training and hosting, using this script, we'll also download the files required to make our custom container. In addition, in that case, we'll also use the startup script to start Docker service when the notebook instance is being started.
 
 ### High-Level Instructions
-1. Create a Lifecycle configuration named `workshop-notebook-lifecycle-config` from SageMaker console, with the following script for `Create Notebook`.
+1. Create a Lifecycle configuration named `smworkshop-notebook-lifecycle-config` from SageMaker console, with the following script for `Create Notebook`.
     ```
     #!/bin/bash
     set -e
@@ -89,9 +89,9 @@ If following the low level method for model training and hosting, using this scr
 1. Choose **Lifecycle configurations** under the section **Notebook** on the left panel.
     ![Lifecycle configurations](images/lifecycle_configuration.png)
 
-1. Choose **Create configuration** to open the create dialo.
+1. Choose **Create configuration** to open the create dialog.
 
-1. Type the name `workshop-notebook-lifecycle-config` in the `Name` field.
+1. Type the name `smworkshop-notebook-lifecycle-config` in the `Name` field.
 
 1. In the tab **Start notebook**, type or copy-paste the `Start Notebook` script from above. (This is required to run docker service, neccessary only if you are following the low level approach for model training and hosting).
     ![Start notebook script](images/lifecycle_configuration-start-notebook.png)
@@ -105,47 +105,43 @@ If following the low level method for model training and hosting, using this scr
 
 ## 3. Launching the Notebook Instance
 
-1. In the upper-right corner of the AWS Management Console, confirm you are in the desired AWS region. Select N. Virginia, Oregon, Ohio, or Ireland.
+### High-Level Instructions
+1. From SageMaker console, create a Notebook named `smworkshop-notebook`, with the instance type of `ml.m4.xlarge`.
 
-2. Click on Amazon SageMaker from the list of all services.  This will bring you to the Amazon SageMaker console homepage.
+1. Create and use an execution role with access to the S3 bucket you created in Section-1.
 
-![Services in Console](../images/console-services.png)
+1. Use the lifycycle configuration you created in Section-2
 
+<details>
+<summary><strong>Step-by-step instructions (expand for details)</strong></summary><p>
 
-3. Before you create a notebook instance, we want to create a "Lifecycle configuration". This is a small bootstrap script that will be run on the Notebook as soon as it starts. We will use this mechanism to download all the relevant notebook files.
+1. In the AWS Management Console choose **Services** then select **Amazon SageMaker** under Machine Learning.
 
-![Create lifecycle Configuration](images/lifecycle_configuration.png)
+1. Choose **Notebook instances** under the section **Notebook** on the left panel.
+    ![Notebook instances](images/notebook-instances.png)
 
-In this, enter the following script.
+1. Choose **Create notebook Instance** to open the create dialog.
 
-```
-#!/bin/bash
-set -e
-git clone https://github.com/aws-samples/aws-nlp-workshop.git
-mkdir SageMaker/nlp-workshop
-mv aws-nlp-workshop/3_NLPClassifier/container SageMaker/nlp-workshop/container/
-mv aws-nlp-workshop/3_NLPClassifier/notebooks SageMaker/nlp-workshop/notebooks/
-rm -rf unicornML
-sudo chmod -R ugo+w SageMaker/nlp-workshop/
-sudo yum install -y docker
-sudo service docker start
+1. Type the name `smworkshop-notebook` in the `Name` field.
 
-```
+1. From `Notebook instance type dropdown`, choose `ml.m4.xlarge`.
 
+1. From `IAM role` dropdown, choose `Create a new role`.
 
-4. To create a new notebook instance, go to **Notebook instances**, and click the **Create notebook instance** button at the top of the browser window.
+1. In the dialog that pops up, keep the radio button for `Specific S3 buckets` selected, and type the S3 bucket name, that you used in section-1 of this module, such as `smworkshop-firstname-lastname`.
+    ![Notebook instance IAM role](images/notebook-execution-role.png)
 
-![Notebook Instances](../images/notebook-instances.png)
+1. Choose **Create Role** to return to notebook creation dialog. Notice that SageMaker creates a new execution role with the current timestamp appended at the end of its name, and that this role remains selected under `IAM role` dropdown.
 
-5. Type smworkshop-[First Name]-[Last Name] into the **Notebook instance name** text box, and select ml.m4.xlarge for the **Notebook instance type**.
+1. From the `Lifecycle configuration` dropdown, choose the configuration named `smworkshop-notebook-lifecycle-config`, that you created in section-2.
 
-![Create Notebook Instance](../images/notebook-settings.png)
+1. Leave the VPC selection and Encryption Keys empty for the purpose of this workshop, and choose **Create notebook instance** to finish creation.
+    ![Notebook instance creation dialog](images/create-notebook-instance.png)
 
-6. For IAM role, choose **Create a new role**, and in the resulting pop-up modal, select **Specific S3 buckets** under **S3 Buckets you specify – optional**. In the text field, paste the name of the S3 bucket you created above, AND the following bucket name separated from the first by a comma:  `gdelt-open-data`.  The combined field entry should look similar to ```smworkshop-john-smith, gdelt-open-data```. Click **Create role**.
+1. You'll be returned to the list of notebooks, with the status of curren notebook shown as `Pending`. Wait till the status changes to `InService`, before proceeding to the next section.
+    ![Notebook instance creation status](images/notebook-instance-status.png)
 
-![Create IAM role](../images/role-popup.png)
-
-7. You will be taken back to the Create Notebook instance page.  Click **Create notebook instance**.
+</p></details>
 
 ### 4. Accessing the Notebook Instance
 
