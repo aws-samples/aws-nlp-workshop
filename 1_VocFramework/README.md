@@ -152,7 +152,7 @@ EU (Ireland) | [![Launch Module 1 in eu-west-1](http://docs.aws.amazon.com/AWSCl
 
 1. Click **Next** on the Select Template page.
 
-1. Enter the name of your S3 bucket (e.g. `nlp-yourname`) for **Website Bucket Name** and click **Next**.
+1. Enter the name of your S3 bucket (e.g. `nlp-firstname-lastname`) for **Website Bucket Name** and click **Next**.
 
 1. On the Options page, leave all the defaults and click **Next**.
 
@@ -178,11 +178,13 @@ See [this example](http://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket
 <details>
 <summary><strong>Step-by-step instructions (expand for details)</strong></summary><p>
 
+1. If you have not granted public read access to your website hosting bucket during creation, using the following steps you can add the read permission for everyone.
+
 1. In the S3 console, select the name of the bucket you created in section 1.
 
 1. Choose the **Permissions** tab, then choose **Bucket Policy**.
 
-1. Enter the following policy document into the bucket policy editor replacing `YOUR_BUCKET_NAME` with the name of the bucket you created in section 1:
+1. Enter the following policy document into the bucket policy editor replacing `YOUR_BUCKET_NAME` with the name of the bucket you created in section 1. If you already added public read permission in section 1, then just verify that following code snippet is present in policy editor.
 
     ```json
     {
