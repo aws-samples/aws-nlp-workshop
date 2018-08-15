@@ -13,7 +13,9 @@ You'll start by creating a SageMaker notebook instance with the requisite permis
 
 In any machine learning project, you as a data scientist or data engineer would need a compute instance to execute code for various tasks, such as gathering, analyzing, and visualizing data, experimenting with ML model etc. In SageMaker, you would provision this infrastructure in form of Notebook Instance, which will provide you with a cloud hosted Jupyter Notebook, which can access S3 buckets and other resources. You can also use notebooks on this instance to run hosted training deployment, in a programmatic way.
 
-In addition, you'll also need an object storage, in form of an S3 bucket, that you'll use to store data and model artifacts. 
+In addition, you'll also need an object storage, in form of an S3 bucket, that you'll use to store data and model artifacts. If you choose to use SageMaker console or corresponding boto3 API, you'd want to specify the location where you store the training data and trained model. In this workshop, the low-level approach requires this, and the S3 bucket you create in following section would be required for that.
+
+If however, you choose to use highlevel SageMaker estimators, as you would if you choose to follow the high-level approach, then SageMaker automatically creates the required bucket. In that case, you can skip through the following Section-1, for creating S3 bucket, and directly jump to Section-2 amd start launching your Notebook in stance.
 
 ## 1. Create an S3 Bucket
 
@@ -35,7 +37,7 @@ Use the console or AWS CLI to create an Amazon S3 bucket. Keep in mind that your
 1. Select the Region you've chosen to use for this workshop from the dropdown.
 
 1. Choose **Next** in the lower right of the dialog without selecting a bucket to copy settings from.
-    ![Create bucket screenshot](images/smworksho-bucket-creation.png)
+    ![Create bucket screenshot](images/smworkshop-bucket-creation.png)
 
 1. Leave everything default on `Configure options` screen and choose **Next** in the lower right of the dialog.   
 
@@ -43,7 +45,7 @@ Use the console or AWS CLI to create an Amazon S3 bucket. Keep in mind that your
     ![Create bucket screenshot](images/smworkshop-bucket-permission.png)
 
 1. Choose **Next** in the lower right of the dialog to go to Review screen, and verify the screen showed is similar to the example shown below.
-    ![Create bucket screenshot](images/smworksho-bucket-review.png)
+    ![Create bucket screenshot](images/smworkshop-bucket-review.png)
 
 1. Choose **Create Bucket** to complete the S3 bucket creation. You'll use this bucket to host your training data, and also to store the model artifacts.
 
