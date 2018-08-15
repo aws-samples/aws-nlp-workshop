@@ -168,6 +168,27 @@ If following the low level method for model training and hosting, using this scr
 1. In the suggestive search box, type "IAM", to have the list of displayed service filtered down, then choose **IAM** from the narrowed down list.
     ![Notebook instance setting](images/create-policy-iam.png)
 
+1. Under `Actions` section, expand `Read` Access level
+
+1. Select only actions - **GetPolicy** and **GetPolicyVersion**
+    ![Notebook instance setting](images/create-policy-actions.png)
+
+1. Under `Resources` section, click on the text displaying `You chose actions that require the policy resource type`.
+
+1. Choose **All resources** radio button under `Resources` section.
+    ![Notebook instance setting](images/create-policy-resources.png)
+
+1. Choose **Review policy** at the bootom right-hand corner of the screen.
+
+1. In the review screen, ensure there are no errors or warnings displayed.
+
+1. Type a name of the policy in `Name` field, Choose a meaningful name, such as `IAMRoleRead`.
+
+1. Choose **Create policy** at the bootom right-hand corner of the screen.
+    ![Notebook instance setting](images/create-policy-review.png)
+
+1. Close the browser tab
+
 </p></details>
 
 
