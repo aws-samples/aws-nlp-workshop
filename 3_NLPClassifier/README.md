@@ -151,6 +151,25 @@ If following the low level method for model training and hosting, using this scr
 
 1. Following the link to IAM Role, opem the execution role in IAM console, and add actions `iam:GetPolicy` and `iam:GetPolicyVersion` within an inline policy.
 
+<details>
+<summary><strong>Step-by-step instructions (expand for details)</strong></summary><p>
+
+1. From the 88Notebook instances** page, click on the hyperlink displayed as the `Name` of the notebook you just created, in this case - `smworkshop-notebook`.
+
+1. From the **Notebook instance settings** page, follow the hyperlink displayed as the IAM role ARN.
+    ![Notebook instance setting](images/notebook-instance-setting.png)
+
+1. From the IAM console page that opens in a new browser tab, displying the role summary, choose **Add Inline policy**
+    ![Notebook instance setting](images/notebook-execution-role-summary.png)
+
+1. On **Createpolicy** page, click on **Choose a service**
+    ![Notebook instance setting](images/create-policy.png)
+
+1. In the suggestive search box, type "IAM", to have the list of displayed service filtered down, then choose **IAM** from the narrowed down list.
+    ![Notebook instance setting](images/create-policy-iam.png)
+
+</p></details>
+
 
 ## 5. Accessing the Notebook Instance
 
@@ -167,14 +186,14 @@ If following the low level method for model training and hosting, using this scr
 
 ## 6. Model Training and Hosting
 
-1. Now, you are going to build a machine learning model on SageMaker. We have created two methods, the first method uses "High-Level Sagemaker APIs" which abstracts away some part of the packaging steps.
+1. Now, you are going to build a machine learning model on SageMaker. We have created two methods, the first method uses "High Level Sagemaker APIs" which abstracts away some part of the packaging steps.
 
-   The second method called "Low level API method" which takes you through the lower level APIs, including the steps to create your own docker image to deploy the Keras model.
+   The second method called "Low Level API method" which takes you through the lower level APIs, including the steps to create your own docker image to deploy the Keras model.
 
 2. Both methods require a minimum of 30mins to run. Choose one method to proceed.
 
     <details>
-    <summary><strong>High - Level Sagemaker API Method (expand for details)</strong></summary><p>
+    <summary><strong>High Level Sagemaker API Method (expand for details)</strong></summary><p>
 
     Once you open the notebook, you will see a file browser. Browse to the folder called "nlp-workshop/notebooks/". Click on the "highlevel-tensorflow-classifer.ipynb" file to open the Jypyter notebook. The remaining instructions to run the notebook are embeddeded in the notebook itself.
 
@@ -190,7 +209,7 @@ If following the low level method for model training and hosting, using this scr
     </details>
 
     <details>
-    <summary><strong>Low - level Sagemaker API using Docker - method (expand for details)</strong></summary><p>
+    <summary><strong>Low Level Sagemaker API using Docker - method (expand for details)</strong></summary><p>
 
     #### 1. Experimentation
             
