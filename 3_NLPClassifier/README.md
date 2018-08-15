@@ -193,7 +193,7 @@ If following the low level method for model training and hosting, using this scr
 
 ## 5. Granting ECR Repository access to NoteBook Instance
 ### High-Level Instructions
-1. If we follow the loe level approach of creating our own conatiner and publishing to an ECR repository, in order to use with a SageMaker hosted training job, we need to add requisite permissions to this Notebook instance.
+1. If we follow the low level approach of creating our own conatiner and publishing to an ECR repository, in order to use with a SageMaker hosted training job, we need to add requisite permissions to this Notebook instance.
 
 1. For this purpose, policies granting "Write" access to ECR needs to be attached to the execution role that we created earlier for this Notebook instance.
 
@@ -240,7 +240,7 @@ If following the low level method for model training and hosting, using this scr
 
 ## 6. Accessing the Notebook Instance
 ### High-Level Instructions
-1. Once the Notebook is in service, follow the link to open the hosted Jupyter notebook server. Required files have all been obtained from this Github repository via the Lifecycle configuration script, and ready to be used under the folder - `nlp-workshop`.
+Once the Notebook is in service, follow the link to open the hosted Jupyter notebook server. Required files have all been obtained from this Github repository via the Lifecycle configuration script, and ready to be used under the folder - `nlp-workshop`.
 
 <details>
 <summary><strong>Step-by-step instructions (expand for details)</strong></summary><p>
