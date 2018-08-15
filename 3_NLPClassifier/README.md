@@ -236,7 +236,7 @@ If following the low level method for model training and hosting, using this scr
     ![Notebook instance setting](images/create-policy-review-ecr.png)
 
 1. Close the browser tab
-
+</p></details>
 
 ## 6. Accessing the Notebook Instance
 
