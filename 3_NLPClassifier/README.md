@@ -239,17 +239,24 @@ If following the low level method for model training and hosting, using this scr
 </p></details>
 
 ## 6. Accessing the Notebook Instance
+### High-Level Instructions
+1. Once the Notebook is in service, follow the link to open the hosted Jupyter notebook server. Required files have all been obtained from this Github repository via the Lifecycle configuration script, and ready to be used under the folder - `nlp-workshop`.
+
+<details>
+<summary><strong>Step-by-step instructions (expand for details)</strong></summary><p>
+
+1. From the **Notebook instances** page, click on the hyperlink displayed as the `Name` of the notebook you just created, in this case - `smworkshop-notebook`.
 
 1. Wait for the server status to change to **InService**. This will take several minutes, possibly up to ten but likely less.
 
-![Access Notebook](images/notebook-ready.png)
+    ![Access Notebook](images/notebook-ready.png)
 
-2. Click **Open**. You will now see the Jupyter homepage for your notebook instance.
+1. Click **Open**. You will now see the Jupyter homepage for your notebook instance.
 
-![Open Notebook](images/jupyter-homepage.png)
+    ![Open Notebook](images/jupyter-homepage.png)
 
-2. The folder named `nlp-workshop` contains the required notebooks and containerization framework neede for the following section. Click on the folder name to navigate into the folder, then follow one of the two approaches from the section to train and host a gender identification model.
-
+1. The folder named `nlp-workshop` contains the required notebooks and containerization framework neede for the following section. Click on the folder name to navigate into the folder, then follow one of the two approaches from the section to train and host a gender identification model.
+</p></details>
 
 ## 7. Model Training and Hosting
 
