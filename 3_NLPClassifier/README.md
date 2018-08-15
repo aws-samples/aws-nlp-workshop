@@ -53,11 +53,11 @@ Use the console or AWS CLI to create an Amazon S3 bucket. Keep in mind that your
 
 ## 2. Creating Notebook Lifecycle Configuration
 
-1. Lifecycle configurations are small bootup scripts, that you can use to automate certain tasks when a Notebook instance in being created and/or being started. For this workshop, we'll use a startup script to download pre-built notebooks from this Github repository onto the instances.
+Lifecycle configurations are small bootup scripts, that you can use to automate certain tasks when a Notebook instance in being created and/or being started. For this workshop, we'll use a startup script to download pre-built notebooks from this Github repository onto the instances.
 
-2. If following the low level method for model training and hosting, using this script, we'll also download the files required to make our custom container. In addition, in that case, we'll also use the startup script to start Docker service when the notebook instance is being started.
+If following the low level method for model training and hosting, using this script, we'll also download the files required to make our custom container. In addition, in that case, we'll also use the startup script to start Docker service when the notebook instance is being started.
 
-### High-Level Instruction
+### High-Level Instructions
 1. Create a Lifecycle configuration named `workshop-notebook-lifecycle-config` from SageMaker console, with the following script for `Create Notebook`.
     ```
     #!/bin/bash
@@ -81,6 +81,17 @@ Use the console or AWS CLI to create an Amazon S3 bucket. Keep in mind that your
     sudo service docker start
 
     ```
+<details>
+<summary><strong>Step-by-step instructions (expand for details)</strong></summary><p>
+
+1. In the AWS Management Console choose **Services** then select **Amazon SageMaker** under Machine Learning.
+
+1. Choose **Lifecycle configurations** under the section **Notebook** on the left panel.
+    ![Lifecycle configurations](../images/lifecycle_configuration.png)
+
+1. Choose **Create Bucket**
+
+</p></details>
 
 ## 3. Launching the Notebook Instance
 
