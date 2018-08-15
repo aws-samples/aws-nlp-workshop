@@ -51,7 +51,36 @@ Use the console or AWS CLI to create an Amazon S3 bucket. Keep in mind that your
 
 </p></details>
 
-## 2. Launching the Notebook Instance
+## 2. Creating Notebook Lifecycle Configuration
+
+1. Lifecycle configurations are small bootup scripts, that you can use to automate certain tasks when a Notebook instance in being created and/or being started. For this workshop, we'll use a startup script to download pre-built notebooks from this Github repository onto the instances.
+
+2. If following the low level method for model training and hosting, using this script, we'll also download the files required to make our custom container. In addition, in that case, we'll also use the startup script to start Docker service when the notebook instance is being started.
+
+### High-Level Instruction
+1. Create a Lifecycle configuration named `workshop-notebook-lifecycle-config` from SageMaker console, with the following script for `Create Notebook`.
+```
+#!/bin/bash
+set -e
+git clone https://github.com/aws-samples/aws-nlp-workshop.git
+mkdir SageMaker/nlp-workshop
+mv aws-nlp-workshop/3_NLPClassifier/container SageMaker/nlp-workshop/container/
+mv aws-nlp-workshop/3_NLPClassifier/notebooks SageMaker/nlp-workshop/notebooks/
+rm -rf unicornML
+sudo chmod -R ugo+w SageMaker/nlp-workshop/
+sudo yum install -y docker
+
+```
+1. If you decide to follow the high-level approach for model training and hosting, in the script above, the lines to move `container` folder, and the line to install Docker are not needed.
+
+1. If you decide to follow low-level approach for model training and hosting, in the same Lifecycle configuration, also add the following script for `Start notebook`.
+
+```
+#!/bin/bash
+set -e
+sudo service docker start
+
+```
 
 ## 3. Launching the Notebook Instance
 
