@@ -106,11 +106,9 @@ If following the low level method for model training and hosting, using this scr
 ## 3. Launching the Notebook Instance
 
 ### High-Level Instructions
-1. From SageMaker console, create a Notebook named `smworkshop-notebook`, with the instance type of `ml.m4.xlarge`.
-
-1. Create and use an execution role with access to the S3 bucket you created in Section-1.
-
-1. Use the lifycycle configuration you created in Section-2
+From SageMaker console, create a Notebook named `smworkshop-notebook`, with the instance type of `ml.m4.xlarge`.
+Create and use an execution role with access to the S3 bucket you created in Section-1.
+Use the lifycycle configuration you created in Section-2
 
 <details>
 <summary><strong>Step-by-step instructions (expand for details)</strong></summary><p>
@@ -145,11 +143,9 @@ If following the low level method for model training and hosting, using this scr
 
 ## 4. Granting IAM Policy access to NoteBook Instance
 ### High-Level Instructions
-1. Since we added access to a specific bucket to the Notebook, it would be conveneient to automatically find the bucket that it has access to from the code running within the notebooks running on the instance.
+Since we added access to a specific bucket to the Notebook, it would be conveneient to automatically find the bucket that it has access to from the code running within the notebooks running on the instance. For this purpose, policies granting "Get" access to IAM policies needs to be attached to the execution role.
 
-1. For this purpose, policies granting "Get" access to IAM policies needs to be attached to the execution role.
-
-1. Following the link to IAM Role, opem the execution role in IAM console, and add actions `iam:GetPolicy` and `iam:GetPolicyVersion` within an inline policy.
+Following the link to IAM Role, opem the execution role in IAM console, and add actions `iam:GetPolicy` and `iam:GetPolicyVersion` within an inline policy.
 
 <details>
 <summary><strong>Step-by-step instructions (expand for details)</strong></summary><p>
