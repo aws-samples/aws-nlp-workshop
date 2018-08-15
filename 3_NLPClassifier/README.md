@@ -147,11 +147,14 @@ If following the low level method for model training and hosting, using this scr
 
 1. Wait for the server status to change to **InService**. This will take several minutes, possibly up to ten but likely less.
 
-![Access Notebook](../images/open-notebook.png)
+![Access Notebook](../images/notebook-ready.png)
 
 2. Click **Open**. You will now see the Jupyter homepage for your notebook instance.
 
 ![Open Notebook](../images/jupyter-homepage.png)
+
+2. The folder named `nlp-workshop` contains the required notebooks and containerization framework neede for the following section. Click on the folder name to navigate into the folder, then follow one of the two approaches from the section to train and host a gender identification model.
+
 
 ### 5. Model Training and Hosting
 
