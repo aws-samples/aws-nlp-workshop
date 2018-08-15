@@ -105,18 +105,6 @@ Use the console or AWS CLI to create an Amazon S3 bucket. Keep in mind that your
 
 1. Choose **Create Bucket** to complete the S3 bucket creation. You'll use this bucket to host your website, which consists of in this case some HTML and JavaScript files.
 
-1. After the bucket is created, you'll return to a list displaying all S3 buckets under your account. You can sort the list in descending order of "Date created", you'll see the newly created bucket at the top.
-
-1. Click on the row displaying the bucket with name `nlp-firstname-lastname`. that you just created.
-    ![Create bucket screenshot](images/nlp-bucket-list.png)
-
-1. From the bucket options dialog that opens on the right side of the screen (with the bucket name shown in a blue header), click the link **Preperties**. This is where you'll mark the bucket as being used for website hosting.
-
-1. From the **Properties** page, choose the card for **Static Website Hosting**
-
-1. Select the radio button for **Use this bucket to host a website**, and type `unicornfeedback.html` under the field for index document.
-    ![Create bucket screenshot](images/nlp-website-hosting.png)
-
 </p></details>
 
 ### 2. Upload Content
@@ -184,7 +172,7 @@ See [this example](http://docs.aws.amazon.com/AmazonS3/latest/dev/example-bucket
 
 1. Choose the **Permissions** tab, then choose **Bucket Policy**.
 
-1. Enter the following policy document into the bucket policy editor replacing `YOUR_BUCKET_NAME` with the name of the bucket you created in section 1. If you already added public read permission in section 1, then just verify that following code snippet is present in policy editor.
+1. Enter the following policy document into the bucket policy editor replacing `YOUR_BUCKET_NAME` with the name of the bucket you created in section 1. If you already added public read permission in section 1, then just verify that following code snippet is present in policy editor.:
 
     ```json
     {
