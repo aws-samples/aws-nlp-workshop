@@ -143,7 +143,16 @@ If following the low level method for model training and hosting, using this scr
 
 </p></details>
 
-### 4. Accessing the Notebook Instance
+## 4. Granting IAM Policy access to NoteBook Instance
+### High-Level Instructions
+1. Since we added access to a specific bucket to the Notebook, it would be conveneient to automatically find the bucket that it has access to from the code running within the notebooks running on the instance.
+
+1. For this purpose, policies granting "Get" access to IAM policies needs to be attached to the execution role.
+
+1. Following the link to IAM Role, opem the execution role in IAM console, and add actions `iam:GetPolicy` and `iam:GetPolicyVersion` within an inline policy.
+
+
+## 5. Accessing the Notebook Instance
 
 1. Wait for the server status to change to **InService**. This will take several minutes, possibly up to ten but likely less.
 
@@ -156,7 +165,7 @@ If following the low level method for model training and hosting, using this scr
 2. The folder named `nlp-workshop` contains the required notebooks and containerization framework neede for the following section. Click on the folder name to navigate into the folder, then follow one of the two approaches from the section to train and host a gender identification model.
 
 
-### 5. Model Training and Hosting
+## 6. Model Training and Hosting
 
 1. Now, you are going to build a machine learning model on SageMaker. We have created two methods, the first method uses "High-Level Sagemaker APIs" which abstracts away some part of the packaging steps.
 
