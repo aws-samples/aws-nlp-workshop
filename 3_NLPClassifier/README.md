@@ -154,7 +154,7 @@ If following the low level method for model training and hosting, using this scr
 <details>
 <summary><strong>Step-by-step instructions (expand for details)</strong></summary><p>
 
-1. From the 88Notebook instances** page, click on the hyperlink displayed as the `Name` of the notebook you just created, in this case - `smworkshop-notebook`.
+1. From the **Notebook instances** page, click on the hyperlink displayed as the `Name` of the notebook you just created, in this case - `smworkshop-notebook`.
 
 1. From the **Notebook instance settings** page, follow the hyperlink displayed as the IAM role ARN.
     ![Notebook instance setting](images/notebook-instance-setting.png)
@@ -162,7 +162,7 @@ If following the low level method for model training and hosting, using this scr
 1. From the IAM console page that opens in a new browser tab, displying the role summary, choose **Add Inline policy**
     ![Notebook instance setting](images/notebook-execution-role-summary.png)
 
-1. On **Createpolicy** page, click on **Choose a service**
+1. On **Create policy** page, click on **Choose a service**
     ![Notebook instance setting](images/create-policy.png)
 
 1. In the suggestive search box, type "IAM", to have the list of displayed service filtered down, then choose **IAM** from the narrowed down list.
@@ -191,8 +191,54 @@ If following the low level method for model training and hosting, using this scr
 
 </p></details>
 
+## 5. Granting ECR Repository access to NoteBook Instance
+### High-Level Instructions
+1. If we follow the loe level approach of creating our own conatiner and publishing to an ECR repository, in order to use with a SageMaker hosted training job, we need to add requisite permissions to this Notebook instance.
 
-## 5. Accessing the Notebook Instance
+1. For this purpose, policies granting "Write" access to ECR needs to be attached to the execution role that we created earlier for this Notebook instance.
+
+1. Following the link to IAM Role, opem the execution role in IAM console, and add actions `ecr:CreateRepository`, `ecr:CompleteLayerUpload`,  `ecr:UploadLayerPart`, `ecr:InitiateLayerUpload`, and `ecr:PutImage` within an inline policy.
+
+<details>
+<summary><strong>Step-by-step instructions (expand for details)</strong></summary><p>
+
+1. From the **Notebook instances** page, click on the hyperlink displayed as the `Name` of the notebook you just created, in this case - `smworkshop-notebook`.
+
+1. From the **Notebook instance settings** page, follow the hyperlink displayed as the IAM role ARN.
+    ![Notebook instance setting](images/notebook-instance-setting.png)
+
+1. From the IAM console page that opens in a new browser tab, displying the role summary, choose **Add Inline policy**
+    ![Notebook instance setting](images/notebook-execution-role-summary.png)
+
+1. On **Create policy** page, click on **Choose a service**
+    ![Notebook instance setting](images/create-policy.png)
+
+1. In the suggestive search box, type "EC2", to have the list of displayed service filtered down, then choose **EC2 Container Registry** from the narrowed down list.
+    ![Notebook instance setting](images/create-policy-ecr.png)
+
+1. Under `Actions` section, expand `Write` Access level
+
+1. Select actions - **CreateRepository**, **InitiateLayerUpload**, **UploadLayerPart**, **CompleteLayerUpload** and **PutImage**
+    ![Notebook instance setting](images/create-policy-actions-ecr.png)
+
+1. Under `Resources` section, click on the text displaying `You chose actions that require the policy resource type`.
+
+1. Choose **All resources** radio button under `Resources` section.
+    ![Notebook instance setting](images/create-policy-resources.png)
+
+1. Choose **Review policy** at the bootom right-hand corner of the screen.
+
+1. In the review screen, ensure there are no errors or warnings displayed.
+
+1. Type a name of the policy in `Name` field, Choose a meaningful name, such as `IAMRoleRead`.
+
+1. Choose **Create policy** at the bootom right-hand corner of the screen.
+    ![Notebook instance setting](images/create-policy-review.png)
+
+1. Close the browser tab
+
+
+## 6. Accessing the Notebook Instance
 
 1. Wait for the server status to change to **InService**. This will take several minutes, possibly up to ten but likely less.
 
@@ -205,7 +251,7 @@ If following the low level method for model training and hosting, using this scr
 2. The folder named `nlp-workshop` contains the required notebooks and containerization framework neede for the following section. Click on the folder name to navigate into the folder, then follow one of the two approaches from the section to train and host a gender identification model.
 
 
-## 6. Model Training and Hosting
+## 7. Model Training and Hosting
 
 1. Now, you are going to build a machine learning model on SageMaker. We have created two methods, the first method uses "High Level Sagemaker APIs" which abstracts away some part of the packaging steps.
 
