@@ -9,13 +9,15 @@ Amazon SageMaker is a fully managed service that enables developers and data sci
 You'll start by creating a SageMaker notebook instance with the requisite permissions. Depending on the workshop, you will then interact with SageMaker via sample Jupyter notebooks, the AWS CLI, the SageMaker console, or all three. During a workshop, you'll explore various data sets, create model training jobs using SageMaker's hosted training feature, and create endpoints to serve predictions from your models using SageMaker's hosted endpoint feature.  
 
 
-# Creating a Notebook Instance
+# Creating required Infrastrucutre
 
-We'll start by creating an Amazon S3 bucket that will be used throughout the workshop.  We'll then create a SageMaker notebook instance, which we will use for the other workshop modules.
+In any machine learning project, you as a data scientist or data engineer would need a compute instance to execute code for various tasks, such as gathering, analyzing, and visualizing data, experimenting with ML model etc. In SageMaker, you would provision this infrastructure in form of Notebook Instance, which will provide you with a cloud hosted Jupyter Notebook, which can access S3 buckets and other resources. You can also use notebooks on this instance to run hosted training deployment, in a programmatic way.
 
-## 1. Create a S3 Bucket
+In addition, you'll also need an object storage, in form of an S3 bucket, that you'll use to store data and model artifacts. 
 
-SageMaker typically uses S3 as storage for data and model artifacts.  In this step you'll create a S3 bucket for this purpose. To begin, sign into the AWS Management Console, https://console.aws.amazon.com/. You can create a new S3 bucket for the ML training, or use the same S3 bucket. Be warned that the bucket we created in the first module of this workshop might more open permissions than what you need here.
+## 1. Create an S3 Bucket
+
+SageMaker uses S3 as storage for data and model artifacts.  In this step you'll create a S3 bucket for this purpose. To begin, sign into the AWS Management Console, https://console.aws.amazon.com/. You can create a new S3 bucket for the ML training, or use the same S3 bucket. Be warned that the bucket we created in the first module of this workshop might more open permissions than what you need here.
 
 ### High-Level Instructions
 
@@ -32,7 +34,18 @@ Use the console or AWS CLI to create an Amazon S3 bucket. Keep in mind that your
 
 1. Select the Region you've chosen to use for this workshop from the dropdown.
 
-1. Choose **Create** in the lower left of the dialog without selecting a bucket to copy settings from.
+1. Choose **Next** in the lower right of the dialog without selecting a bucket to copy settings from.
+    ![Create bucket screenshot](images/smworksho-bucket-creation.png)
+
+1. Leave everything default on `Configure options` screen and choose **Next** in the lower right of the dialog.   
+
+1. On `Permissions` screen, esnure that public permissions are not granted to this bucket, by checking that under the dropdown for `Manage public permissions`, the option `Do not grant public read access to this bucket (Recommended)` remains selected. 
+    ![Create bucket screenshot](images/smworkshop-bucket-permission.png)
+
+1. Choose **Next** in the lower right of the dialog to go to Review screen, and verify the screen showed is similar to the example shown below.
+    ![Create bucket screenshot](images/smworksho-bucket-review.png)
+
+1. Choose **Create Bucket** to complete the S3 bucket creation. You'll use this bucket to host your training data, and also to store the model artifacts.
 
 </p></details>
 
@@ -115,7 +128,7 @@ EU (Ireland) | [![Launch Module 1 in eu-west-1](http://docs.aws.amazon.com/AWSCl
 <details>
 <summary><strong>Low - level Sagemaker API using Docker - method (expand for details)</strong></summary><p>
 
-Once you finish Running the orchestration notebook, abd obtain a SageMaker hosted endpotin name, the next step would be to create a new API Gateway method, a Lambda function in the backend to integrate with the hosted endpoint, and update the configuration Javsacript of your webapplication so that when `Identify Gender` button is clicked, this new endpoint recieved the HTTP request. If you're eager to see the end result of all the hard work you put in to identify customers' genders,  you can launch one of these AWS CloudFormation templates in the Region of your choice to build the necessary resources
+Once you finish Running the orchestration notebook, and obtain a SageMaker hosted endpoint name, the next step would be to create a new API Gateway method, a Lambda function in the backend to integrate with the hosted endpoint, and update the configuration Javsacript of your webapplication so that when `Identify Gender` button is clicked, this new endpoint recieved the HTTP request. If you're eager to see the end result of all the hard work you put in to identify customers' genders,  you can launch one of these AWS CloudFormation templates in the Region of your choice to build the necessary resources
 automatically.
 
 Region| Launch
