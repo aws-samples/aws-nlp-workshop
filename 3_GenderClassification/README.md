@@ -255,11 +255,13 @@ Once the Notebook is in service, follow the link to open the hosted Jupyter note
 
 ## 7. Model Training and Hosting
 
-1. Now, you are going to build a machine learning model on SageMaker. We have created two methods, the first method uses "High Level Sagemaker APIs" which abstracts away some part of the packaging steps.
+1. Now, you are going to build a machine learning model on SageMaker. We have created three methods, the first method uses "High Level Sagemaker APIs" which abstracts away some part of the packaging steps.
 
    The second method called "Low Level API method" which takes you through the lower level APIs, including the steps to create your own docker image to deploy the Keras model.
 
-2. Both methods require a minimum of 30mins to run. Choose one method to proceed.
+   The third method is actually a subset of the Low Level method, in that, in this we assume that a pre-trained model is readily available, which is only deploy for generating predictions. Bypassing model training phase makes this fastest, which you might want to choose to follow to get a quick overview of how custome model can be brought onto SageMaker. In practice, this is also an useful technique, when your model architecture and training is outsourced to a separate entity, such as a dedicated data science organization or department.
+
+2. Either of the first two methods require about 60 minutes to run. Model importing by third methid can be completed in about 15 minutes. Choose any one method to proceed, as you find suitable for your level of understanding.
 
     <details>
     <summary><strong>High Level Sagemaker API Method (expand for details)</strong></summary><p>
@@ -267,13 +269,6 @@ Once the Notebook is in service, follow the link to open the hosted Jupyter note
     Once you open the notebook, you will see a file browser. Browse to the folder called "nlp-workshop/notebooks/". Click on the "highlevel-tensorflow-classifer.ipynb" file to open the Jypyter notebook. The remaining instructions to run the notebook are embeddeded in the notebook itself.
 
     After successfully creating an endpoint, the next step would be to create a new API Gateway method, a Lambda function in the backend to integrate with the hosted endpoint, and update the configuration Javsacript of your webapplication so that when `Identify Gender` button is clicked, this new endpoint recieved the HTTP request. If you're eager to see the end result of all the hard work you put in to identify customers' genders, you can launch one of these AWS CloudFormation templates in the Region of your choice to build the necessary resources automatically.
-
-    Region| Launch
-    ------|-----
-    US East (N. Virginia) | [![Launch Module 1 in us-east-1](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=nlp-workshop-voc-sagemaker&templateURL=https://s3.amazonaws.com/nlp-serverless-workshop/voc-sagemaker-high-level.json)
-    US East (Ohio) | [![Launch Module 1 in us-east-2](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=nlp-workshop-voc-sagemaker&templateURL=https://s3.amazonaws.com/nlp-serverless-workshop/voc-sagemaker-high-level.json)
-    US West (Oregon) | [![Launch Module 1 in us-west-2](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=nlp-workshop-voc-sagemaker&templateURL=https://s3.amazonaws.com/nlp-serverless-workshop/voc-sagemaker-high-level.json)
-    EU (Ireland) | [![Launch Module 1 in eu-west-1](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=nlp-workshop-voc-sagemaker&templateURL=https://s3.amazonaws.com/nlp-serverless-workshop/voc-sagemaker-high-level.json)
 
     </details>
 
@@ -298,7 +293,10 @@ Once the Notebook is in service, follow the link to open the hosted Jupyter note
     
     Once configured, this will enable the `Identify Gender` button, which when clicked, would send HTTP request to the new endpoint. 
     
-    Eager to see the end result of all the hard work you put in to identify customers' genders?  Launch one of these AWS CloudFormation templates in the Region of your choice to build the necessary resources
+    </details>
+
+
+3. Eager to see the end result of all the hard work you put in to identify customers' genders?  Launch one of these AWS CloudFormation templates in the Region of your choice to build the necessary resources
     automatically.
 
     Region| Launch
@@ -307,7 +305,5 @@ Once the Notebook is in service, follow the link to open the hosted Jupyter note
     US East (Ohio) | [![Launch Module 1 in us-east-2](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-east-2#/stacks/new?stackName=nlp-workshop-voc-sagemaker&templateURL=https://s3.amazonaws.com/nlp-workshop/templates/voc-sagemaker.json)
     US West (Oregon) | [![Launch Module 1 in us-west-2](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=nlp-workshop-voc-sagemaker&templateURL=https://s3.amazonaws.com/nlp-workshop/templates/voc-sagemaker.json)
     EU (Ireland) | [![Launch Module 1 in eu-west-1](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/images/cloudformation-launch-stack-button.png)](https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=nlp-workshop-voc-sagemaker&templateURL=https://s3.amazonaws.com/nlp-workshop/templates/voc-sagemaker.json)
-    </details>
 
-
-3. Now you will be able to make predictions about the gender of the customer from the first name. Try to see if you can increase the accuracy of your predictions.
+    Now you will be able to make predictions about the gender of the customer from the first name. Try to see if you can increase the accuracy of your predictions.
