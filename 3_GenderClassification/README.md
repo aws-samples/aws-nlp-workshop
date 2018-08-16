@@ -64,8 +64,9 @@ If following the low level method for model training and hosting, using this scr
     set -e
     git clone https://github.com/aws-samples/aws-nlp-workshop.git
     mkdir SageMaker/nlp-workshop
-    mv aws-nlp-workshop/3_NLPClassifier/container SageMaker/nlp-workshop/container/
-    mv aws-nlp-workshop/3_NLPClassifier/notebooks SageMaker/nlp-workshop/notebooks/
+    mv aws-nlp-workshop/3_GenderClassification/container SageMaker/nlp-workshop/container/
+    mv aws-nlp-workshop/3_GenderClassification/notebooks SageMaker/nlp-workshop/notebooks/
+    mv aws-nlp-workshop/3_GenderClassification/pretrained-model SageMaker/nlp-workshop/pretrained-model/
     rm -rf unicornML
     sudo chmod -R ugo+w SageMaker/nlp-workshop/
     sudo yum install -y docker
