@@ -273,7 +273,7 @@ Once the Notebook is in service, follow the link to open the hosted Jupyter note
     </details>
 
     <details>
-    <summary><strong>Low Level Sagemaker API using Docker - method (expand for details)</strong></summary><p>
+    <summary><strong>Low Level Sagemaker API method using Docker (expand for details)</strong></summary><p>
 
     #### 1. Experimentation
             
@@ -295,9 +295,21 @@ Once the Notebook is in service, follow the link to open the hosted Jupyter note
     
     </details>
 
+    <details>
+    <summary><strong>Hosting Pre-trained model using Docker (expand for details)</strong></summary><p>
+            
+    In this method you'll completely bypass data analysis, model creation and training. Instead you'll use the notebook named `dockerizer-model-import-gender-classifier.ipynb` to quickly test the pre-trained model that was available on this Github repository, host it on your S3 bucket and deploy it behind an SageMaker endpoint.
 
-3. Eager to see the end result of all the hard work you put in to identify customers' genders?  Launch one of these AWS CloudFormation templates in the Region of your choice to build the necessary resources
-    automatically.
+    So head over to that notebook, and come back to the this section once you finish running the notebook.
+
+    Now that you have the trained model hosted behind a SageMaker managed endpoint, the next step would be to create a new API Gateway method, a Lambda function in the backend to integrate with the hosted endpoint, and update the configuration Javsacript of your webapplication.
+    
+    Once configured, this will enable the `Identify Gender` button, which when clicked, would send HTTP request to the new endpoint. 
+    
+    </details>    
+
+
+3. Eager to see the end result of all the hard work you put in to identify customers' genders?  Launch one of these AWS CloudFormation templates in the Region of your choice to build the necessary resources automatically.
 
     Region| Launch
     ------|-----
